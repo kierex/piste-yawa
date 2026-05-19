@@ -1,13 +1,19 @@
-// package.json
 {
   "name": "cyber-x-fb-creator",
   "version": "2.0.0",
-  "description": "Facebook Account Creator Web Tool",
+  "description": "Facebook Account Creator Web Tool - Auto Facebook Account Creation with Multiple Methods",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js"
   },
+  "keywords": [
+    "facebook",
+    "account-creator",
+    "automation",
+    "cyber-x"
+  ],
+  "author": "CYBER-X Team",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "express-session": "^1.17.3",
@@ -15,8 +21,5 @@
     "cheerio": "^1.0.0-rc.12",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
   }
 }

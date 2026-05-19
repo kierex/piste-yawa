@@ -1,0 +1,513 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CYBER-X | Facebook Account Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a3a 100%);
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Banner Styles */
+        .banner {
+            background: linear-gradient(135deg, #1a0033, #0d001a);
+            border: 2px solid #7b2f9d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(123, 47, 157, 0.3);
+        }
+
+        .banner pre {
+            color: #00ff88;
+            font-size: 12px;
+            text-shadow: 0 0 5px #00ff88;
+            letter-spacing: 2px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #7b2f9d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header {
+            border-bottom: 1px solid #7b2f9d;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: #00ccff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #7b2f9d;
+            border-radius: 5px;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7b2f9d, #4a1d6e);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(123, 47, 157, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00aa44, #008833);
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #7b2f9d;
+        }
+
+        th {
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        td {
+            color: #00ff88;
+            font-size: 12px;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #7b2f9d;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #00ccff;
+        }
+
+        /* Progress Bar */
+        .progress {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .alert-error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+
+        .alert-info {
+            background: rgba(0, 204, 255, 0.2);
+            border: 1px solid #00ccff;
+            color: #00ccff;
+        }
+
+        /* Utility */
+        .mt-20 { margin-top: 20px; }
+        .text-center { text-align: center; }
+        .glow { text-shadow: 0 0 10px currentColor; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Banner -->
+        <div class="banner">
+            <pre>
+  ╔═══════════════════════════════════════════════════════╗
+  ║  ▄▄▄   ▄   ▄ ▄▄▄▄  ▄▄▄▄ ▄▄▄▄      ▄  ▄              ║
+  ║ ██    ████  ██  █ ██  █ ██ ██     ╚██╗██╔╝             ║
+  ║ ██    ██ ██ ██████ ██████ ██████    ╚███╔╝              ║
+  ║ ██    ██ ██ ██  █ ██     ██ ██     ██╔██╗               ║
+  ║  ▀▀▀  ██ ██ ██████ █████  ██ ██   ██╔╝ ██╗             ║
+  ╠═══════════════════════════════════════════════════════╣
+  ║     ◆  A U T O   F A C E B O O K   T O O L  ◆          ║
+  ╠═══════════════════════════════════════════════════════╣
+  ║  ▸ DEV     │  CYBER-X TEAM                              ║
+  ║  ▸ TOOL    │  FACEBOOK ACCOUNT CREATOR                  ║
+  ║  ▸ VERSION │  v2.0 WEB EDITION                          ║
+  ║  ▸ STATUS  │  ● ACTIVE ONLINE                           ║
+  ╚═══════════════════════════════════════════════════════╝
+            </pre>
+            <div class="title glow">⚡ CYBER-X AUTO FB MAKER ⚡</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOk">0</div>
+                <div class="stat-label">✅ SUCCESSFUL</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalFailed">0</div>
+                <div class="stat-label">❌ FAILED</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalAccounts">0</div>
+                <div class="stat-label">📊 TOTAL ACCOUNTS</div>
+            </div>
+        </div>
+
+        <!-- Main Controls -->
+        <div class="card">
+            <div class="card-header">🔧 CONFIGURATION</div>
+            <form id="createForm">
+                <div class="form-group">
+                    <label>📱 EMAIL/TEMP NUMBER TYPE</label>
+                    <select id="emailType">
+                        <option value="phone">📞 Temp Number (BD)</option>
+                        <option value="mix">🌍 Mix Number</option>
+                        <option value="temp">📧 Temp Mail</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🔐 PASSWORD OPTION</label>
+                    <select id="passwordType">
+                        <option value="auto">🎲 Auto Generate Password</option>
+                        <option value="custom">✏️ Custom Password</option>
+                    </select>
+                </div>
+                <div class="form-group" id="customPasswordGroup" style="display:none;">
+                    <label>🔑 Custom Password</label>
+                    <input type="text" id="customPassword" placeholder="Enter your password">
+                </div>
+                <div class="form-group">
+                    <label>🔢 NUMBER OF ACCOUNTS</label>
+                    <input type="number" id="numAccounts" value="1" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>🎯 METHOD</label>
+                    <select id="method">
+                        <option value="1">Method 1 - Basic Registration</option>
+                        <option value="2">Method 2 - Enhanced Registration</option>
+                        <option value="3">Method 3 - Premium Registration</option>
+                    </select>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">🚀 START CREATION</button>
+                    <button type="button" class="btn btn-success" onclick="loadAccounts()">📋 VIEW ACCOUNTS</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div class="text-center mt-20" id="progressStatus">Processing...</div>
+        </div>
+
+        <!-- Results -->
+        <div class="card" id="resultsCard" style="display:none;">
+            <div class="card-header">📊 RESULTS</div>
+            <div id="results"></div>
+        </div>
+
+        <!-- Accounts List -->
+        <div class="card" id="accountsCard" style="display:none;">
+            <div class="card-header">📁 SAVED ACCOUNTS</div>
+            <div class="table-container">
+                <table id="accountsTable">
+                    <thead>
+                        <tr><th>UID</th><th>Password</th><th>Email/Phone</th><th>Status</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAccounts = [];
+
+        document.getElementById('passwordType').addEventListener('change', function(e) {
+            const customGroup = document.getElementById('customPasswordGroup');
+            customGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
+        });
+
+        document.getElementById('createForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const passwordType = document.getElementById('passwordType').value;
+            const customPassword = passwordType === 'custom' ? document.getElementById('customPassword').value : '';
+            
+            const data = {
+                method: parseInt(document.getElementById('method').value),
+                emailType: document.getElementById('emailType').value,
+                passwordType: passwordType,
+                customPassword: customPassword,
+                numAccounts: parseInt(document.getElementById('numAccounts').value)
+            };
+            
+            if (passwordType === 'custom' && !customPassword) {
+                showAlert('Please enter a custom password', 'error');
+                return;
+            }
+            
+            // Show progress
+            document.getElementById('progress').style.display = 'block';
+            document.getElementById('resultsCard').style.display = 'none';
+            document.getElementById('accountsCard').style.display = 'none';
+            updateProgress(0, 'Starting account creation...');
+            
+            try {
+                const response = await fetch('/api/create-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                // Update stats
+                document.getElementById('totalOk').textContent = result.success.length;
+                document.getElementById('totalFailed').textContent = result.failed.length;
+                
+                // Display results
+                displayResults(result);
+                
+                updateProgress(100, 'Completed!');
+                setTimeout(() => {
+                    document.getElementById('progress').style.display = 'none';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error creating accounts: ' + error.message, 'error');
+                document.getElementById('progress').style.display = 'none';
+            }
+        });
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            if (result.success.length > 0) {
+                resultsDiv.innerHTML += '<h3 style="color: #00ff88;">✅ Successful Accounts:</h3>';
+                result.success.forEach(acc => {
+                    resultsDiv.innerHTML += `
+                        <div style="background: rgba(0,255,136,0.1); padding: 10px; margin: 10px 0; border-radius: 5px;">
+                            <strong>UID:</strong> ${acc.uid}<br>
+                            <strong>Password:</strong> ${acc.password}<br>
+                            <strong>Contact:</strong> ${acc.email}<br>
+                            <strong>Name:</strong> ${acc.name}<br>
+                            <button onclick="copyToClipboard('${acc.uid}|${acc.password}')" class="btn btn-primary" style="margin-top: 5px;">📋 Copy</button>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (result.failed.length > 0) {
+                resultsDiv.innerHTML += '<h3 style="color: #ff4444;">❌ Failed Attempts:</h3>';
+                result.failed.forEach(fail => {
+                    resultsDiv.innerHTML += `
+                        <div style="background: rgba(255,68,68,0.1); padding: 10px; margin: 10px 0; border-radius: 5px;">
+                            <strong>Reason:</strong> ${fail.reason}<br>
+                            <strong>Contact:</strong> ${fail.contact || 'N/A'}
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('resultsCard').style.display = 'block';
+            showAlert(`Created ${result.success.length} accounts successfully!`, 'success');
+        }
+        
+        async function loadAccounts() {
+            try {
+                const response = await fetch('/api/accounts');
+                const accounts = await response.json();
+                
+                const tbody = document.querySelector('#accountsTable tbody');
+                tbody.innerHTML = '';
+                
+                accounts.forEach(acc => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = acc.uid;
+                    row.insertCell(1).textContent = acc.password;
+                    row.insertCell(2).textContent = acc.email;
+                    row.insertCell(3).innerHTML = '<span style="color: #00ff88;">● Active</span>';
+                });
+                
+                document.getElementById('totalAccounts').textContent = accounts.length;
+                document.getElementById('accountsCard').style.display = 'block';
+                document.getElementById('resultsCard').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error loading accounts:', error);
+                showAlert('Error loading accounts', 'error');
+            }
+        }
+        
+        function updateProgress(percent, status) {
+            const fill = document.getElementById('progressFill');
+            fill.style.width = percent + '%';
+            fill.textContent = percent + '%';
+            document.getElementById('progressStatus').textContent = status;
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.display = 'block';
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.children[2]);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('Copied to clipboard!', 'success');
+            });
+        }
+        
+        // Refresh stats every 10 seconds
+        setInterval(loadAccounts, 10000);
+        
+        // Initial load
+        loadAccounts();
+    </script>
+</body>
+</html>

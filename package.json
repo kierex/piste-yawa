@@ -1,25 +1,13 @@
 {
-  "name": "cyber-x-fb-creator",
-  "version": "2.0.0",
-  "description": "Facebook Account Creator Web Tool - Auto Facebook Account Creation with Multiple Methods",
-  "main": "server.js",
+  "name": "buffalo-shop",
+  "version": "1.0.0",
+  "description": "Facebook accounts shop - Buffalo's Shop",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
-  "keywords": [
-    "facebook",
-    "account-creator",
-    "automation",
-    "cyber-x"
-  ],
-  "author": "CYBER-X Team",
-  "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "express-session": "^1.17.3",
-    "axios": "^1.6.2",
-    "cheerio": "^1.0.0-rc.12",
-    "express-rate-limit": "^7.1.5",
-    "helmet": "^7.1.0"
+    "express": "^4.18.2"
   }
 }

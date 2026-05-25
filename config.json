@@ -1,11 +1,12 @@
 {
   "images": [
     "https://iili.io/CJQVdSn.jpg",
+    "https://iili.io/CJZLzFI.jpg",
     "https://iili.io/CJZvxoX.jpg",
     "https://iili.io/CJQVISe.jpg",
     "https://iili.io/CJQVNiN.jpg"
   ],
-  "stock": 3,
+  "stock": 5,
   "price": 2,
   "currency": "₱",
   "accountDetails": {

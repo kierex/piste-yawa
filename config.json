@@ -1,0 +1,15 @@
+{
+  "images": [
+    "https://iili.io/CJQVdSn.jpg",
+    "https://iili.io/CJQVISe.jpg",
+    "https://iili.io/CJQVNiN.jpg"
+  ],
+  "stock": 3,
+  "price": 2,
+  "currency": "₱",
+  "accountDetails": {
+    "hoursOld": "~ 48-72 hours",
+    "emailAccess": "NO ACCESS",
+    "canChangeName": "YES"
+  }
+}

@@ -10,15 +10,17 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Enhanced data structures
 const total = new Map();
 const activeTimers = new Map();
 const requestQueue = new Map();
 const rateLimiter = new Map();
 const sessionLogs = new Map();
 
+// Configuration
 const CONFIG = {
     MAX_CONCURRENT_SESSIONS: 5,
-    RATE_LIMIT_WINDOW: 60000,
+    RATE_LIMIT_WINDOW: 60000, // 1 minute
     MAX_REQUESTS_PER_WINDOW: 30,
     REQUEST_TIMEOUT: 30000,
     RETRY_ATTEMPTS: 3,
@@ -26,6 +28,7 @@ const CONFIG = {
     LOG_RETENTION_DAYS: 7
 };
 
+// Enhanced logging
 class Logger {
     static async log(sessionId, action, data) {
         const logEntry = {
@@ -40,6 +43,7 @@ class Logger {
         }
         sessionLogs.get(sessionId).push(logEntry);
         
+        // Save to file periodically
         if (sessionLogs.get(sessionId).length % 10 === 0) {
             await this.saveToFile(sessionId);
         }
@@ -63,6 +67,7 @@ class Logger {
     }
 }
 
+// Rate limiter
 class RateLimiter {
     static checkLimit(sessionId) {
         const now = Date.now();
@@ -93,6 +98,7 @@ class RateLimiter {
     }
 }
 
+// Enhanced endpoints
 app.get('/api/total', (req, res) => {
     const data = Array.from(total.values()).map((session, index) => ({
         sessionId: session.sessionId,
@@ -154,6 +160,7 @@ app.post('/api/submit', async (req, res) => {
         sessionId: providedSessionId
     } = req.body;
     
+    // Validation
     if (!cookie || !url || !amount || !interval) {
         return res.status(400).json({
             success: false,
@@ -210,6 +217,7 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
+// Enhanced share function with better error handling
 async function share(cookies, url, amount, interval, sessionId) {
     const id = await getPostID(url);
     if (!id) {
@@ -247,10 +255,12 @@ async function share(cookies, url, amount, interval, sessionId) {
     let consecutiveErrors = 0;
     
     async function sharePost() {
+        // Check if session still exists
         if (!total.has(sessionId)) {
             return;
         }
         
+        // Rate limiting check
         if (!RateLimiter.checkLimit(sessionId)) {
             await Logger.log(sessionId, 'rate_limited', { timestamp: new Date().toISOString() });
             return;
@@ -322,9 +332,11 @@ async function share(cookies, url, amount, interval, sessionId) {
         }
     }
     
+    // Start sharing with interval
     const timer = setInterval(sharePost, interval * 1000);
     activeTimers.set(sessionId, timer);
     
+    // Set timeout to stop after completion
     const timeoutId = setTimeout(() => {
         if (total.has(sessionId) && total.get(sessionId).count < amount) {
             stopSharing(sessionId);
@@ -335,7 +347,7 @@ async function share(cookies, url, amount, interval, sessionId) {
                 total.set(sessionId, session);
             }
         }
-    }, amount * interval * 1000 + 60000);
+    }, amount * interval * 1000 + 60000); // Add 1 minute grace period
     
     activeTimers.set(`${sessionId}_timeout`, timeoutId);
     
@@ -363,6 +375,7 @@ async function stopSharing(sessionId) {
     });
 }
 
+// Enhanced helper functions with retry logic
 async function getPostID(url, retryCount = 0) {
     try {
         const response = await axios.post('https://id.traodoisub.com/api.php', 
@@ -429,11 +442,13 @@ async function getAccessToken(cookie, retryCount = 0) {
 
 async function convertCookie(cookie) {
     try {
+        // Handle both string and object input
         let cookies;
         if (typeof cookie === 'string') {
             try {
                 cookies = JSON.parse(cookie);
             } catch {
+                // If it's already a cookie string, return as is
                 if (cookie.includes('=')) {
                     return cookie;
                 }
@@ -463,17 +478,19 @@ async function convertCookie(cookie) {
     }
 }
 
+// Cleanup old sessions periodically
 setInterval(() => {
     const now = Date.now();
     for (const [sessionId, session] of total.entries()) {
         const sessionTime = new Date(session.startTime).getTime();
-        if (session.status === 'completed' && (now - sessionTime) > 86400000) {
+        if (session.status === 'completed' && (now - sessionTime) > 86400000) { // 24 hours
             total.delete(sessionId);
             sessionLogs.delete(sessionId);
         }
     }
-}, 3600000);
+}, 3600000); // Run every hour
 
+// Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
@@ -484,29 +501,17 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-app.get('/404.html', (req, res) => {
-    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-});
-
-app.get('/500.html', (req, res) => {
-    res.status(500).sendFile(path.join(__dirname, 'public', '500.html'));
-});
-
-app.use((req, res, next) => {
-    if (req.path.startsWith('/api')) {
-        return res.status(404).json({ success: false, error: 'API endpoint not found' });
-    }
-    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-});
-
+// Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Server Error:', err.stack);
-    if (req.path.startsWith('/api')) {
-        return res.status(500).json({ success: false, error: 'Internal server error', message: err.message });
-    }
-    res.status(500).sendFile(path.join(__dirname, 'public', '500.html'));
+    console.error('Unhandled error:', err);
+    res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: err.message
+    });
 });
 
+// Create logs directory if it doesn't exist
 (async () => {
     try {
         await fs.mkdir('logs', { recursive: true });

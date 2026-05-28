@@ -4,12 +4,133 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook Share Booster - Auto Sharing Dashboard</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231877F2'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial'%3E📤%3C/text%3E%3C/svg%3E">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAAAX0lEQVR4Xu3QAQ0AAAgDoPtXTyARBEHYQUNuJkYEAABAAAMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQMBAwEDAQP/BwAAA//bAAGBAAAAAElFTkSuQmCC">
+    <title>ShareBoost Pro - Automated Facebook Post Sharing</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-gradient"></div>
+    
+    <div class="wrapper-container">
+        <!-- Header Section -->
+        <div class="container claymorphism">
+            <div class="logo-container">
+                <i class="fas fa-share-alt logo-icon"></i>
+                <h1>SHARE<span>BOOST</span></h1>
+            </div>
+            <p class="tagline">Professional automated Facebook post sharing platform</p>
+            <div class="badge-container">
+                <span class="badge"><i class="fas fa-bolt"></i> Fast Processing</span>
+                <span class="badge"><i class="fas fa-shield-alt"></i> Secure</span>
+                <span class="badge"><i class="fas fa-chart-line"></i> Real-time Stats</span>
+            </div>
+        </div>
+
+        <!-- Main Form Section -->
+        <div class="form-wrapper claymorphism">
+            <h2><i class="fas fa-rocket"></i> Start Boosting</h2>
+            <p class="form-description">Enter your credentials and target details</p>
+            
+            <form onsubmit="submitForm(event)" class="form-container">
+                <div class="form-group">
+                    <label for="cookies">
+                        <i class="fas fa-key"></i> AppState / Cookies
+                        <span class="tooltip" data-tooltip="Paste your Facebook appstate JSON array">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </label>
+                    <textarea id="cookies" name="cookie" placeholder='[{"key":"sb","value":"xxx"},{"key":"datr","value":"xxx"}]' rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="urls">
+                        <i class="fas fa-link"></i> Post URL
+                        <span class="tooltip" data-tooltip="Facebook post URL to share">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </label>
+                    <input type="text" id="urls" name="url" placeholder="https://www.facebook.com/...">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="amounts">
+                            <i class="fas fa-chart-simple"></i> Share Limit
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="number" id="amounts" name="amount" placeholder="100" min="1" max="10000">
+                            <span class="input-hint">max 10,000</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="intervals">
+                            <i class="fas fa-clock"></i> Delay (seconds)
+                        </label>
+                        <div class="input-with-icon">
+                            <input type="number" id="intervals" name="interval" placeholder="5" min="1" max="60">
+                            <span class="input-hint">1-60 sec</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" id="submit-button" class="submit-btn">
+                    <i class="fas fa-play"></i>
+                    <span>Start Sharing</span>
+                </button>
+                
+                <div id="result" class="result-message"></div>
+            </form>
+        </div>
+
+        <!-- Processing Section -->
+        <div class="container claymorphism" id="process-container" style="display: none;">
+            <div class="section-header">
+                <i class="fas fa-tasks"></i>
+                <h2>Active Sessions</h2>
+                <span class="session-count" id="session-count">0</span>
+            </div>
+            <div id="processing" class="processing-list"></div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card claymorphism">
+                <i class="fas fa-chart-line stat-icon"></i>
+                <div class="stat-info">
+                    <h3 id="total-shares">0</h3>
+                    <p>Total Shares</p>
+                </div>
+            </div>
+            <div class="stat-card claymorphism">
+                <i class="fas fa-users stat-icon"></i>
+                <div class="stat-info">
+                    <h3 id="active-sessions">0</h3>
+                    <p>Active Sessions</p>
+                </div>
+            </div>
+            <div class="stat-card claymorphism">
+                <i class="fas fa-check-circle stat-icon"></i>
+                <div class="stat-info">
+                    <h3 id="completed-sessions">0</h3>
+                    <p>Completed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="container claymorphism">
+            <div class="about-content">
+                <i class="fas fa-code-branch about-icon"></i>
+                <h3>Open Source Project</h3>
+                <p>ShareBoost Pro is an automated Facebook post sharing tool. Contribute, learn, and customize on our repository.</p>
+                <a href="#" class="github-link" id="github-link">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+
     <style>
         * {
             margin: 0;
@@ -19,161 +140,11 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 40px 20px;
             position: relative;
             overflow-x: hidden;
-        }
-
-        /* Privacy Policy Modal - Full overlay before dashboard access */
-        .privacy-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .privacy-modal {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            max-width: 550px;
-            width: 90%;
-            border-radius: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .privacy-header {
-            background: linear-gradient(135deg, #1877F2, #0e5a9e);
-            padding: 24px 28px;
-            color: white;
-        }
-
-        .privacy-header i {
-            font-size: 48px;
-            margin-bottom: 12px;
-        }
-
-        .privacy-header h2 {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-
-        .privacy-header p {
-            opacity: 0.9;
-            font-size: 14px;
-            margin-top: 6px;
-        }
-
-        .privacy-content {
-            padding: 28px;
-            max-height: 400px;
-            overflow-y: auto;
-            color: #1e293b;
-            line-height: 1.6;
-        }
-
-        .privacy-content h3 {
-            font-size: 18px;
-            margin: 18px 0 8px 0;
-            color: #1877F2;
-        }
-
-        .privacy-content h3:first-of-type {
-            margin-top: 0;
-        }
-
-        .privacy-content p {
-            font-size: 14px;
-            margin-bottom: 12px;
-            color: #334155;
-        }
-
-        .privacy-content ul {
-            margin-left: 20px;
-            margin-bottom: 16px;
-        }
-
-        .privacy-content li {
-            font-size: 13px;
-            margin: 6px 0;
-            color: #475569;
-        }
-
-        .privacy-footer {
-            padding: 20px 28px 28px;
-            background: #f1f5f9;
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .btn-agree {
-            background: linear-gradient(135deg, #1877F2, #0e5a9e);
-            border: none;
-            padding: 12px 28px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-agree:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
-        }
-
-        .btn-decline {
-            background: transparent;
-            border: 1px solid #cbd5e1;
-            padding: 12px 28px;
-            border-radius: 40px;
-            color: #475569;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-decline:hover {
-            background: #eef2ff;
-            border-color: #1877F2;
-            color: #1877F2;
-        }
-
-        /* Main Dashboard - initially hidden */
-        .dashboard-wrapper {
-            display: none;
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
         }
 
         .background-gradient {
@@ -182,15 +153,27 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 80%, rgba(24,119,242,0.15) 0%, transparent 60%);
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
             pointer-events: none;
         }
 
+        .wrapper-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Claymorphism Style */
         .claymorphism {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 32px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -205,34 +188,41 @@
             margin-bottom: 24px;
         }
 
+        /* Header Styles */
         .logo-container {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 16px;
             margin-bottom: 16px;
-            flex-wrap: wrap;
         }
 
         .logo-icon {
-            font-size: 52px;
+            font-size: 48px;
             color: #fff;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         h1 {
-            font-size: 44px;
+            font-size: 42px;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #ffe0b5 100%);
+            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             letter-spacing: -0.5px;
         }
 
+        h1 span {
+            font-weight: 300;
+            background: linear-gradient(135deg, #ffd89b 0%, #c7e9fb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
         .tagline {
             text-align: center;
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.8);
             margin-bottom: 24px;
             font-size: 16px;
         }
@@ -254,8 +244,10 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        /* Form Styles */
         .form-wrapper {
             padding: 32px;
             margin-bottom: 24px;
@@ -308,6 +300,7 @@
             font-size: 12px;
             white-space: nowrap;
             z-index: 10;
+            pointer-events: none;
         }
 
         input, textarea {
@@ -324,9 +317,15 @@
 
         input:focus, textarea:focus {
             outline: none;
-            border-color: #1877F2;
-            box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             background: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: monospace;
+            font-size: 12px;
         }
 
         .form-row {
@@ -345,14 +344,14 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 11px;
-            color: #6c757d;
+            color: #999;
             pointer-events: none;
         }
 
         .submit-btn {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #1877F2, #0e5a9e);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
             border: none;
             border-radius: 12px;
@@ -369,9 +368,14 @@
 
         .submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(24, 119, 242, 0.4);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Result Message */
         .result-message {
             margin-top: 16px;
             padding: 12px;
@@ -397,10 +401,17 @@
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px);}
-            to { opacity: 1; transform: translateY(0);}
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
+        /* Processing Section */
         .section-header {
             display: flex;
             align-items: center;
@@ -420,6 +431,7 @@
             background: rgba(255, 255, 255, 0.2);
             padding: 4px 12px;
             border-radius: 20px;
+            font-size: 14px;
         }
 
         .processing-list {
@@ -436,20 +448,25 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        .process-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(4px);
         }
 
         .process-info {
             flex: 1;
-            min-width: 200px;
         }
 
         .process-url {
             color: #fff;
             font-weight: 500;
-            font-size: 13px;
+            margin-bottom: 4px;
+            font-size: 14px;
             word-break: break-all;
         }
 
@@ -463,18 +480,50 @@
         .progress-bar {
             flex: 1;
             height: 6px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #1877F2, #0e5a9e);
+            background: linear-gradient(90deg, #667eea, #764ba2);
             border-radius: 3px;
-            transition: width 0.3s;
+            transition: width 0.3s ease;
         }
 
+        .process-stats {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .stat-badge {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-running {
+            background: rgba(33, 150, 243, 0.3);
+            color: #42a5f5;
+        }
+
+        .status-completed {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -498,359 +547,231 @@
             font-size: 28px;
             font-weight: 700;
             color: #fff;
+            margin-bottom: 4px;
         }
 
         .stat-info p {
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
             font-size: 13px;
+        }
+
+        /* About Section */
+        .about-content {
+            text-align: center;
+        }
+
+        .about-icon {
+            font-size: 48px;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .about-content h3 {
+            color: #fff;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .about-content p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
 
         .github-link {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             padding: 10px 20px;
             border-radius: 12px;
             color: #fff;
             text-decoration: none;
+            transition: all 0.3s ease;
         }
 
+        .github-link:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; gap: 0; }
-            h1 { font-size: 32px; }
-            .privacy-modal { width: 95%; margin: 20px; }
-        }
-    </style>
-</head>
-<body>
+            body {
+                padding: 20px 16px;
+            }
 
-<div class="background-gradient"></div>
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
 
-<!-- PRIVACY POLICY MODAL (MANDATORY BEFORE DASHBOARD) -->
-<div id="privacyOverlay" class="privacy-overlay">
-    <div class="privacy-modal">
-        <div class="privacy-header">
-            <i class="fas fa-shield-alt"></i>
-            <h2>Privacy Policy Agreement</h2>
-            <p>Facebook Share Booster – Your data matters</p>
-        </div>
-        <div class="privacy-content">
-            <h3><i class="fas fa-database"></i> Data Collection</h3>
-            <p>We value your privacy. This tool requires access to your Facebook AppState (cookies) to perform automated sharing on your behalf. We only process the data locally within your current session and never store your credentials on any external server.</p>
-            
-            <h3><i class="fas fa-share-alt"></i> How We Use Your Information</h3>
-            <p>Your AppState and post URL are used exclusively to execute the automated share actions you request. No personal data is sold, shared, or transferred to third parties. All operations are performed securely via encrypted API calls.</p>
-            
-            <h3><i class="fas fa-user-secret"></i> Security & Responsibility</h3>
-            <p>By using this booster, you acknowledge that you comply with Facebook's Terms of Service. You are solely responsible for any actions taken using your account. The developers assume no liability for misuse or account restrictions.</p>
-            
-            <h3><i class="fas fa-clock"></i> Data Retention</h3>
-            <p>Session data is temporarily stored in memory and automatically cleared when you close the browser or refresh the page. No logs or cookies are persisted after session termination.</p>
-            
-            <ul>
-                <li>✅ No external tracking or analytics</li>
-                <li>✅ 100% open-source transparency</li>
-                <li>✅ You retain full control of your data</li>
-            </ul>
-            <p><strong>By clicking "I Agree", you consent to the above terms and confirm that you are at least 18 years old.</strong></p>
-        </div>
-        <div class="privacy-footer">
-            <button class="btn-decline" id="declineBtn"><i class="fas fa-times"></i> Decline</button>
-            <button class="btn-agree" id="agreeBtn"><i class="fas fa-check-circle"></i> I Agree & Continue</button>
-        </div>
-    </div>
-</div>
+            h1 {
+                font-size: 32px;
+            }
 
-<!-- MAIN DASHBOARD (HIDDEN UNTIL AGREEMENT) -->
-<div id="dashboardMain" class="dashboard-wrapper">
-    <div class="container claymorphism">
-        <div class="logo-container">
-            <i class="fab fa-facebook logo-icon" style="color:#fff;"></i>
-            <h1>FACEBOOK<span> SHARE BOOSTER</span></h1>
-        </div>
-        <p class="tagline">Automated post sharing • Fast & Reliable • Privacy First</p>
-        <div class="badge-container">
-            <span class="badge"><i class="fas fa-bolt"></i> Auto Sharing</span>
-            <span class="badge"><i class="fas fa-shield-alt"></i> Secure Session</span>
-            <span class="badge"><i class="fas fa-chart-line"></i> Real-time Stats</span>
-        </div>
-    </div>
+            .container, .form-wrapper {
+                padding: 24px;
+            }
 
-    <div class="form-wrapper claymorphism">
-        <h2><i class="fas fa-rocket"></i> Start Boosting Shares</h2>
-        <p class="form-description">Enter your Facebook AppState cookies and post details</p>
-        <form onsubmit="submitForm(event)" class="form-container">
-            <div class="form-group">
-                <label for="cookies"><i class="fas fa-key"></i> AppState / Cookies <span class="tooltip" data-tooltip="Paste your Facebook appstate JSON array"><i class="fas fa-info-circle"></i></span></label>
-                <textarea id="cookies" name="cookie" placeholder='[{"key":"sb","value":"xxx"},{"key":"datr","value":"xxx"}]' rows="3"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="urls"><i class="fas fa-link"></i> Facebook Post URL</label>
-                <input type="text" id="urls" name="url" placeholder="https://www.facebook.com/...">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="amounts"><i class="fas fa-chart-simple"></i> Share Limit</label>
-                    <div class="input-with-icon">
-                        <input type="number" id="amounts" name="amount" placeholder="100" value="100" min="1" max="10000">
-                        <span class="input-hint">max 10k</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="intervals"><i class="fas fa-clock"></i> Delay (seconds)</label>
-                    <div class="input-with-icon">
-                        <input type="number" id="intervals" name="interval" placeholder="2" value="2" min="1" max="60">
-                        <span class="input-hint">1-60 sec</span>
-                    </div>
-                </div>
-            </div>
-            <button type="submit" id="submit-button" class="submit-btn"><i class="fas fa-play"></i><span>Start Sharing</span></button>
-            <div id="result" class="result-message"></div>
-        </form>
-    </div>
-
-    <div class="container claymorphism" id="process-container" style="display: none;">
-        <div class="section-header"><i class="fas fa-tasks"></i><h2>Active Sessions</h2><span class="session-count" id="session-count">0</span></div>
-        <div id="processing" class="processing-list"></div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card claymorphism"><i class="fas fa-chart-line stat-icon"></i><div class="stat-info"><h3 id="total-shares">0</h3><p>Total Shares</p></div></div>
-        <div class="stat-card claymorphism"><i class="fas fa-users stat-icon"></i><div class="stat-info"><h3 id="active-sessions">0</h3><p>Active Sessions</p></div></div>
-        <div class="stat-card claymorphism"><i class="fas fa-check-circle stat-icon"></i><div class="stat-info"><h3 id="completed-sessions">0</h3><p>Completed</p></div></div>
-    </div>
-
-    <div class="container claymorphism">
-        <div class="about-content" style="text-align:center"><i class="fas fa-code-branch about-icon" style="font-size:48px;color:#fff"></i><h3 style="color:#fff">Open Source Project</h3><p style="color:rgba(255,255,255,0.8)">Facebook Share Booster – Ethical automation tool. Contribute on GitHub.</p><a href="#" class="github-link" id="github-link"><i class="fab fa-github"></i> View on GitHub</a></div>
-    </div>
-</div>
-
-<script>
-    // ---------- PRIVACY POLICY POPUP LOGIC (MANDATORY) ----------
-    const overlay = document.getElementById('privacyOverlay');
-    const dashboard = document.getElementById('dashboardMain');
-    const agreeBtn = document.getElementById('agreeBtn');
-    const declineBtn = document.getElementById('declineBtn');
-
-    // Check if already agreed in this session (sessionStorage)
-    if (sessionStorage.getItem('privacyAccepted') === 'true') {
-        // User already agreed, show dashboard immediately
-        overlay.style.display = 'none';
-        dashboard.style.display = 'block';
-    } else {
-        overlay.style.display = 'flex';
-        dashboard.style.display = 'none';
-    }
-
-    // Agree button: save to session and show dashboard
-    agreeBtn.addEventListener('click', () => {
-        sessionStorage.setItem('privacyAccepted', 'true');
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.style.display = 'none';
-            dashboard.style.display = 'block';
-            // Trigger initial load after dashboard visible
-            loadProcessing();
-            startAutoRefresh();
-        }, 200);
-    });
-
-    // Decline: show alert and block access, no dashboard shown
-    declineBtn.addEventListener('click', () => {
-        alert('You must accept the Privacy Policy to use Facebook Share Booster. The page will not grant access to the dashboard.');
-        // Optional: redirect or leave overlay. We'll keep overlay but user cannot proceed.
-        // For better UX, we do nothing else – dashboard remains hidden.
-    });
-
-    // ---------- SHARE BOOSTER LOGIC (Mock API with localStorage simulation) ----------
-    let refreshIntervalId = null;
-    // Session store (in-memory simulation for demo purposes)
-    let mockSessions = [];
-
-    // Load mock sessions from localStorage for persistence across refreshes (demo)
-    function loadMockSessions() {
-        const saved = localStorage.getItem('fb_booster_sessions');
-        if (saved) {
-            mockSessions = JSON.parse(saved);
-        } else {
-            mockSessions = [];
-        }
-        // Cleanup completed sessions older than 10min logic not needed, but filter stale
-        mockSessions = mockSessions.filter(s => s.status !== 'completed' || (Date.now() - s.createdAt < 3600000));
-        updateStatsAndRender();
-    }
-
-    function saveMockSessions() {
-        localStorage.setItem('fb_booster_sessions', JSON.stringify(mockSessions));
-    }
-
-    function addMockSession(cookie, url, amount, interval) {
-        const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        const newSession = {
-            sessionId: sessionId,
-            url: url,
-            targetAmount: amount,
-            sharedCount: 0,
-            intervalSec: interval,
-            status: 'running',
-            cookiePreview: cookie.substring(0, 30) + '...',
-            createdAt: Date.now()
-        };
-        mockSessions.push(newSession);
-        saveMockSessions();
-        // Start simulation of sharing progress
-        simulateSharing(newSession);
-        updateStatsAndRender();
-        return newSession;
-    }
-
-    function simulateSharing(session) {
-        if (session.status !== 'running') return;
-        const intervalMs = (session.intervalSec || 2) * 1000;
-        const total = session.targetAmount;
-        
-        function step() {
-            if (session.status !== 'running') return;
-            if (session.sharedCount < total) {
-                session.sharedCount = Math.min(session.sharedCount + 1, total);
-                saveMockSessions();
-                updateStatsAndRender();
-                if (session.sharedCount < total) {
-                    setTimeout(step, intervalMs);
-                } else {
-                    session.status = 'completed';
-                    saveMockSessions();
-                    updateStatsAndRender();
-                }
-            } else {
-                session.status = 'completed';
-                saveMockSessions();
-                updateStatsAndRender();
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
-        // start with delay
-        setTimeout(step, intervalMs);
-    }
+    </style>
 
-    function updateStatsAndRender() {
-        // Update global stats
-        let totalShares = 0, active = 0, completed = 0;
-        mockSessions.forEach(s => {
-            totalShares += s.sharedCount;
-            if (s.status === 'running') active++;
-            if (s.status === 'completed') completed++;
-        });
-        document.getElementById('total-shares').innerText = totalShares;
-        document.getElementById('active-sessions').innerText = active;
-        document.getElementById('completed-sessions').innerText = completed;
-        document.getElementById('session-count').innerText = active;
-        
-        const processContainer = document.getElementById('process-container');
-        const processingDiv = document.getElementById('processing');
-        if (mockSessions.length === 0) {
-            processContainer.style.display = 'none';
-            return;
+    <script>
+        let refreshInterval = null;
+
+        async function submitForm(event) {
+            event.preventDefault();
+            const result = document.getElementById('result');
+            const button = document.getElementById('submit-button');
+            
+            const cookies = document.getElementById('cookies').value;
+            const url = document.getElementById('urls').value;
+            const amount = document.getElementById('amounts').value;
+            const interval = document.getElementById('intervals').value;
+
+            if (!cookies || !url || !amount || !interval) {
+                showResult('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        cookie: cookies,
+                        url: url,
+                        amount: parseInt(amount),
+                        interval: parseInt(interval),
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                const data = await response.json();
+
+                if (data.success || data.status === 200) {
+                    showResult('✓ Session started successfully!', 'success');
+                    document.getElementById('cookies').value = '';
+                    document.getElementById('urls').value = '';
+                    document.getElementById('amounts').value = '';
+                    document.getElementById('intervals').value = '';
+                    await loadProcessing();
+                } else {
+                    showResult('Error: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showResult('Error: ' + e.message, 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-play"></i><span>Start Sharing</span>';
+            }
         }
-        processContainer.style.display = 'block';
-        processingDiv.innerHTML = '';
-        mockSessions.forEach(session => {
-            const percentage = (session.sharedCount / session.targetAmount) * 100;
+
+        function showResult(message, type) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = `result-message ${type}`;
+            setTimeout(() => {
+                result.className = 'result-message';
+                result.style.display = 'none';
+            }, 5000);
+        }
+
+        async function loadProcessing() {
+            try {
+                const response = await fetch('/api/total');
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                const data = await response.json();
+                const container = document.getElementById('processing');
+                const processContainer = document.getElementById('process-container');
+                
+                if (!data.sessions || data.sessions.length === 0) {
+                    processContainer.style.display = 'none';
+                    return;
+                }
+                
+                processContainer.style.display = 'block';
+                container.innerHTML = '';
+                
+                // Update stats
+                let totalShares = 0;
+                let activeSessions = 0;
+                let completedSessions = 0;
+                
+                data.sessions.forEach(session => {
+                    totalShares += session.sharedCount;
+                    if (session.status === 'running') activeSessions++;
+                    if (session.status === 'completed') completedSessions++;
+                    
+                    const processCard = createProcessCard(session);
+                    container.appendChild(processCard);
+                });
+                
+                document.getElementById('total-shares').textContent = totalShares;
+                document.getElementById('active-sessions').textContent = activeSessions;
+                document.getElementById('completed-sessions').textContent = completedSessions;
+                document.getElementById('session-count').textContent = data.activeSessions;
+                
+            } catch (error) {
+                console.error('Error loading processing:', error);
+            }
+        }
+
+        function createProcessCard(session) {
             const card = document.createElement('div');
             card.className = 'process-card';
+            card.setAttribute('data-session-id', session.sessionId);
+            
+            const percentage = (session.sharedCount / session.targetAmount) * 100;
+            
             card.innerHTML = `
                 <div class="process-info">
-                    <div class="process-url"><i class="fas fa-link"></i> ${session.url.substring(0, 55)}${session.url.length > 55 ? '...' : ''}</div>
+                    <div class="process-url">
+                        <i class="fas fa-link"></i> ${session.url.substring(0, 60)}${session.url.length > 60 ? '...' : ''}
+                    </div>
                     <div class="process-progress">
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%"></div></div>
-                        <span style="color:#fff; font-size:12px;">${percentage.toFixed(1)}%</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <span style="color: #fff; font-size: 12px;">${percentage.toFixed(1)}%</span>
                     </div>
                 </div>
                 <div class="process-stats">
-                    <span class="stat-badge" style="background:rgba(0,0,0,0.3); padding:4px 12px; border-radius:20px; font-size:12px; color:white;">
+                    <span class="stat-badge">
                         <i class="fas fa-chart-simple"></i> ${session.sharedCount}/${session.targetAmount}
                     </span>
-                    <span class="status-badge" style="padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; background:${session.status === 'running' ? 'rgba(33,150,243,0.3)' : 'rgba(76,175,80,0.3)'}; color:${session.status === 'running' ? '#42a5f5' : '#4caf50'}">
-                        <i class="fas ${session.status === 'running' ? 'fa-play' : 'fa-check'}"></i> ${session.status.toUpperCase()}
+                    <span class="status-badge status-${session.status}">
+                        <i class="fas ${session.status === 'running' ? 'fa-play' : 'fa-check'}"></i> 
+                        ${session.status.toUpperCase()}
                     </span>
                 </div>
             `;
-            processingDiv.appendChild(card);
-        });
-    }
-
-    async function submitForm(event) {
-        event.preventDefault();
-        const cookies = document.getElementById('cookies').value.trim();
-        const url = document.getElementById('urls').value.trim();
-        let amount = parseInt(document.getElementById('amounts').value);
-        let interval = parseInt(document.getElementById('intervals').value);
-        const resultDiv = document.getElementById('result');
-        const btn = document.getElementById('submit-button');
-
-        if (!cookies || !url) {
-            showResult('❌ Please fill in AppState/Cookies and Post URL', 'error');
-            return;
+            
+            return card;
         }
-        if (isNaN(amount) || amount < 1) amount = 100;
-        if (isNaN(interval) || interval < 1) interval = 2;
-        if (amount > 10000) amount = 10000;
-        if (interval > 60) interval = 60;
+
+        // Auto-refresh processing data
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(loadProcessing, 2000);
         
-        try {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding session...';
-            // Mock API call (simulate backend)
-            addMockSession(cookies, url, amount, interval);
-            showResult('✅ Session started! Boosting shares...', 'success');
-            document.getElementById('cookies').value = '';
-            document.getElementById('urls').value = '';
-            document.getElementById('amounts').value = '100';
-            document.getElementById('intervals').value = '2';
-        } catch (e) {
-            showResult('Error: ' + e.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-play"></i><span>Start Sharing</span>';
-        }
-    }
-
-    function showResult(msg, type) {
-        const res = document.getElementById('result');
-        res.textContent = msg;
-        res.className = `result-message ${type}`;
-        setTimeout(() => { res.className = 'result-message'; res.style.display = 'none'; }, 4000);
-    }
-
-    function loadProcessing() {
-        updateStatsAndRender();
-    }
-
-    function startAutoRefresh() {
-        if (refreshIntervalId) clearInterval(refreshIntervalId);
-        refreshIntervalId = setInterval(() => { updateStatsAndRender(); }, 1800);
-    }
-
-    // GitHub link placeholder
-    document.getElementById('github-link')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.open('https://github.com/', '_blank');
-    });
-
-    // initial load after dashboard visible
-    loadMockSessions();
-    // only start auto-refresh if dashboard visible later; but inside agreement will call again
-    function initWhenVisible() {
-        if (dashboard.style.display === 'block') {
-            loadProcessing();
-            startAutoRefresh();
-        }
-    }
-    // also for case when privacy is already accepted
-    if (sessionStorage.getItem('privacyAccepted') === 'true') {
+        // Initial load
         loadProcessing();
-        startAutoRefresh();
-    }
-</script>
+
+        // Fix GitHub link
+        document.getElementById('github-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.open('https://github.com', '_blank');
+        });
+    </script>
 </body>
 </html>

@@ -4,31 +4,43 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
 const crypto = require('crypto');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 
 const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Enhanced data structures
+// Session configuration
+app.use(session({
+    secret: 'shareboost-super-secret-key-change-this',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000
+    }
+}));
+
+// Data structures
 const total = new Map();
 const activeTimers = new Map();
-const requestQueue = new Map();
-const rateLimiter = new Map();
 const sessionLogs = new Map();
 
 // Configuration
 const CONFIG = {
     MAX_CONCURRENT_SESSIONS: 5,
-    RATE_LIMIT_WINDOW: 60000, // 1 minute
-    MAX_REQUESTS_PER_WINDOW: 30,
     REQUEST_TIMEOUT: 30000,
     RETRY_ATTEMPTS: 3,
     RETRY_DELAY: 2000,
-    LOG_RETENTION_DAYS: 7
+    DEFAULT_INTERVAL: 2
 };
 
-// Enhanced logging
+// Logger
 class Logger {
     static async log(sessionId, action, data) {
         const logEntry = {
@@ -43,7 +55,6 @@ class Logger {
         }
         sessionLogs.get(sessionId).push(logEntry);
         
-        // Save to file periodically
         if (sessionLogs.get(sessionId).length % 10 === 0) {
             await this.saveToFile(sessionId);
         }
@@ -67,38 +78,24 @@ class Logger {
     }
 }
 
-// Rate limiter
-class RateLimiter {
-    static checkLimit(sessionId) {
-        const now = Date.now();
-        const sessionLimit = rateLimiter.get(sessionId);
-        
-        if (!sessionLimit) {
-            rateLimiter.set(sessionId, {
-                count: 1,
-                resetTime: now + CONFIG.RATE_LIMIT_WINDOW
-            });
-            return true;
-        }
-        
-        if (now > sessionLimit.resetTime) {
-            rateLimiter.set(sessionId, {
-                count: 1,
-                resetTime: now + CONFIG.RATE_LIMIT_WINDOW
-            });
-            return true;
-        }
-        
-        if (sessionLimit.count >= CONFIG.MAX_REQUESTS_PER_WINDOW) {
-            return false;
-        }
-        
-        sessionLimit.count++;
-        return true;
-    }
-}
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'portal.html'));
+});
 
-// Enhanced endpoints
+app.get('/dashboard', (req, res) => {
+    if (!req.session.agreedToPrivacy) {
+        return res.redirect('/');
+    }
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.post('/api/agree-privacy', (req, res) => {
+    req.session.agreedToPrivacy = true;
+    req.session.agreedAt = new Date().toISOString();
+    res.json({ success: true });
+});
+
 app.get('/api/total', (req, res) => {
     const data = Array.from(total.values()).map((session, index) => ({
         sessionId: session.sessionId,
@@ -119,16 +116,6 @@ app.get('/api/total', (req, res) => {
         activeSessions: total.size,
         sessions: data,
         timestamp: new Date().toISOString()
-    });
-});
-
-app.get('/api/session/:sessionId/logs', (req, res) => {
-    const { sessionId } = req.params;
-    const logs = Logger.getLogs(sessionId);
-    res.json({
-        success: true,
-        sessionId,
-        logs
     });
 });
 
@@ -156,15 +143,20 @@ app.post('/api/submit', async (req, res) => {
         cookie,
         url,
         amount,
-        interval,
-        sessionId: providedSessionId
+        interval = CONFIG.DEFAULT_INTERVAL
     } = req.body;
     
-    // Validation
-    if (!cookie || !url || !amount || !interval) {
+    if (!req.session.agreedToPrivacy) {
+        return res.status(403).json({
+            success: false,
+            error: 'Please agree to the privacy policy first'
+        });
+    }
+    
+    if (!cookie || !url || !amount) {
         return res.status(400).json({
             success: false,
-            error: 'Missing required fields: cookie, url, amount, or interval'
+            error: 'Missing required fields'
         });
     }
     
@@ -185,7 +177,7 @@ app.post('/api/submit', async (req, res) => {
     if (total.size >= CONFIG.MAX_CONCURRENT_SESSIONS) {
         return res.status(429).json({
             success: false,
-            error: `Maximum concurrent sessions (${CONFIG.MAX_CONCURRENT_SESSIONS}) reached`
+            error: `Maximum ${CONFIG.MAX_CONCURRENT_SESSIONS} concurrent sessions reached`
         });
     }
     
@@ -198,9 +190,8 @@ app.post('/api/submit', async (req, res) => {
             });
         }
         
-        const sessionId = providedSessionId || crypto.randomBytes(16).toString('hex');
-        
-        const result = await share(cookies, url, amount, interval, sessionId);
+        const sessionId = crypto.randomBytes(16).toString('hex');
+        const result = await share(cookies, url, parseInt(amount), parseInt(interval), sessionId);
         
         res.json({
             success: true,
@@ -209,7 +200,7 @@ app.post('/api/submit', async (req, res) => {
             estimatedCompletion: result.estimatedCompletion
         });
     } catch (err) {
-        console.error('Error in /api/submit:', err);
+        console.error('Error:', err);
         return res.status(500).json({
             success: false,
             error: err.message || 'Internal server error'
@@ -217,16 +208,15 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
-// Enhanced share function with better error handling
 async function share(cookies, url, amount, interval, sessionId) {
     const id = await getPostID(url);
     if (!id) {
-        throw new Error("Unable to get post ID: Invalid URL, private post, or friends-only visibility");
+        throw new Error("Unable to get post ID");
     }
     
     const accessToken = await getAccessToken(cookies);
     if (!accessToken) {
-        throw new Error("Unable to get access token: Invalid cookies or session expired");
+        throw new Error("Unable to get access token");
     }
     
     const startTime = Date.now();
@@ -244,8 +234,7 @@ async function share(cookies, url, amount, interval, sessionId) {
         error: null,
         cookies,
         accessToken,
-        interval,
-        sharedCount: 0
+        interval
     };
     
     total.set(sessionId, sessionData);
@@ -255,16 +244,7 @@ async function share(cookies, url, amount, interval, sessionId) {
     let consecutiveErrors = 0;
     
     async function sharePost() {
-        // Check if session still exists
-        if (!total.has(sessionId)) {
-            return;
-        }
-        
-        // Rate limiting check
-        if (!RateLimiter.checkLimit(sessionId)) {
-            await Logger.log(sessionId, 'rate_limited', { timestamp: new Date().toISOString() });
-            return;
-        }
+        if (!total.has(sessionId)) return;
         
         try {
             const response = await axios.post(
@@ -273,9 +253,6 @@ async function share(cookies, url, amount, interval, sessionId) {
                 {
                     headers: {
                         'accept': '*/*',
-                        'accept-encoding': 'gzip, deflate',
-                        'connection': 'keep-alive',
-                        'content-length': '0',
                         'cookie': cookies,
                         'host': 'graph.facebook.com'
                     },
@@ -296,65 +273,50 @@ async function share(cookies, url, amount, interval, sessionId) {
                 
                 await Logger.log(sessionId, 'share_success', {
                     count: sharedCount,
-                    total: amount,
-                    timestamp: new Date().toISOString()
+                    total: amount
                 });
                 
                 if (sharedCount >= amount) {
                     await stopSharing(sessionId);
-                    await Logger.log(sessionId, 'session_completed', {
-                        totalShared: sharedCount,
-                        completedAt: new Date().toISOString()
-                    });
                 }
             }
         } catch (error) {
             consecutiveErrors++;
             await Logger.log(sessionId, 'share_error', {
                 error: error.message,
-                consecutiveErrors,
-                timestamp: new Date().toISOString()
+                consecutiveErrors
             });
             
             if (consecutiveErrors >= 5) {
-                await Logger.log(sessionId, 'session_stopped_due_to_errors', {
-                    reason: 'Too many consecutive errors',
-                    errorCount: consecutiveErrors
-                });
                 await stopSharing(sessionId);
-                if (total.has(sessionId)) {
-                    const session = total.get(sessionId);
+                const session = total.get(sessionId);
+                if (session) {
                     session.status = 'failed';
-                    session.error = `Stopped after ${consecutiveErrors} consecutive errors`;
+                    session.error = `Stopped after ${consecutiveErrors} errors`;
                     total.set(sessionId, session);
                 }
             }
         }
     }
     
-    // Start sharing with interval
     const timer = setInterval(sharePost, interval * 1000);
     activeTimers.set(sessionId, timer);
     
-    // Set timeout to stop after completion
     const timeoutId = setTimeout(() => {
         if (total.has(sessionId) && total.get(sessionId).count < amount) {
             stopSharing(sessionId);
             const session = total.get(sessionId);
             if (session) {
                 session.status = 'timeout';
-                session.error = 'Session timed out before completion';
+                session.error = 'Session timed out';
                 total.set(sessionId, session);
             }
         }
-    }, amount * interval * 1000 + 60000); // Add 1 minute grace period
+    }, amount * interval * 1000 + 60000);
     
     activeTimers.set(`${sessionId}_timeout`, timeoutId);
     
-    return {
-        sessionId,
-        estimatedCompletion: estimatedCompletion.toISOString()
-    };
+    return { sessionId, estimatedCompletion: estimatedCompletion.toISOString() };
 }
 
 async function stopSharing(sessionId) {
@@ -369,29 +331,18 @@ async function stopSharing(sessionId) {
         clearTimeout(timeoutId);
         activeTimers.delete(`${sessionId}_timeout`);
     }
-    
-    await Logger.log(sessionId, 'session_stopped', {
-        timestamp: new Date().toISOString()
-    });
 }
 
-// Enhanced helper functions with retry logic
 async function getPostID(url, retryCount = 0) {
     try {
         const response = await axios.post('https://id.traodoisub.com/api.php', 
             `link=${encodeURIComponent(url)}`,
             {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 timeout: CONFIG.REQUEST_TIMEOUT
             }
         );
-        
-        if (response.data && response.data.id) {
-            return response.data.id;
-        }
-        throw new Error('No ID returned from API');
+        return response.data.id;
     } catch (error) {
         if (retryCount < CONFIG.RETRY_ATTEMPTS) {
             await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
@@ -403,34 +354,16 @@ async function getPostID(url, retryCount = 0) {
 
 async function getAccessToken(cookie, retryCount = 0) {
     try {
-        const headers = {
-            'authority': 'business.facebook.com',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'accept-language': 'en-US,en;q=0.9',
-            'cache-control': 'max-age=0',
-            'cookie': cookie,
-            'referer': 'https://www.facebook.com/',
-            'sec-ch-ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'upgrade-insecure-requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        };
-        
         const response = await axios.get('https://business.facebook.com/content_management', {
-            headers,
+            headers: {
+                'cookie': cookie,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
             timeout: CONFIG.REQUEST_TIMEOUT
         });
         
         const tokenMatch = response.data.match(/"accessToken":"([^"]+)"/);
-        if (tokenMatch && tokenMatch[1]) {
-            return tokenMatch[1];
-        }
-        
-        throw new Error('Access token not found in response');
+        return tokenMatch ? tokenMatch[1] : null;
     } catch (error) {
         if (retryCount < CONFIG.RETRY_ATTEMPTS) {
             await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_DELAY));
@@ -442,90 +375,62 @@ async function getAccessToken(cookie, retryCount = 0) {
 
 async function convertCookie(cookie) {
     try {
-        // Handle both string and object input
         let cookies;
         if (typeof cookie === 'string') {
             try {
                 cookies = JSON.parse(cookie);
             } catch {
-                // If it's already a cookie string, return as is
-                if (cookie.includes('=')) {
-                    return cookie;
-                }
+                if (cookie.includes('=')) return cookie;
                 throw new Error('Invalid cookie format');
             }
         } else if (Array.isArray(cookie)) {
             cookies = cookie;
         } else {
-            throw new Error('Cookie must be an array or JSON string');
+            throw new Error('Cookie must be array or JSON string');
         }
         
         const sbCookie = cookies.find(c => c.key === "sb");
-        if (!sbCookie) {
-            throw new Error("Cookie missing 'sb' field - invalid appstate");
-        }
+        if (!sbCookie) throw new Error("Missing 'sb' field");
         
-        const sbValue = sbCookie.value;
-        const cookieString = `sb=${sbValue}; ${cookies
-            .filter(c => c.key !== "sb")
-            .map(c => `${c.key}=${c.value}`)
-            .join('; ')}`;
-        
-        return cookieString;
+        return `sb=${sbCookie.value}; ${cookies.filter(c => c.key !== "sb").map(c => `${c.key}=${c.value}`).join('; ')}`;
     } catch (error) {
-        console.error('Cookie conversion error:', error);
-        throw new Error(error.message || "Error processing cookie");
+        throw new Error("Error processing cookie");
     }
 }
 
-// Cleanup old sessions periodically
+// Error pages
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).sendFile(path.join(__dirname, 'public', '500.html'));
+});
+
+// Cleanup
 setInterval(() => {
     const now = Date.now();
     for (const [sessionId, session] of total.entries()) {
         const sessionTime = new Date(session.startTime).getTime();
-        if (session.status === 'completed' && (now - sessionTime) > 86400000) { // 24 hours
+        if (session.status === 'completed' && (now - sessionTime) > 86400000) {
             total.delete(sessionId);
             sessionLogs.delete(sessionId);
         }
     }
-}, 3600000); // Run every hour
+}, 3600000);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'healthy',
-        activeSessions: total.size,
-        maxConcurrent: CONFIG.MAX_CONCURRENT_SESSIONS,
-        uptime: process.uptime(),
-        timestamp: new Date().toISOString()
-    });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: err.message
-    });
-});
-
-// Create logs directory if it doesn't exist
+// Create directories
 (async () => {
-    try {
-        await fs.mkdir('logs', { recursive: true });
-        console.log('Logs directory created');
-    } catch (error) {
-        console.error('Failed to create logs directory:', error);
-    }
+    await fs.mkdir('logs', { recursive: true });
+    console.log('Logs directory ready');
 })();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`Total endpoint: http://localhost:${PORT}/api/total`);
+    console.log(`Portal: http://localhost:${PORT}/`);
+    console.log(`Dashboard: http://localhost:${PORT}/dashboard`);
 });
 
 module.exports = app;

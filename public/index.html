@@ -3,1560 +3,621 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ShareBoost Pro - Dashboard</title>
-    
-    <!-- Favicon Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#667eea">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Share Booster - Automated Post Sharing</title>
+    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231877f2'%3E%3Cpath d='M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z'/%3E%3C/svg%3E">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="background-gradient"></div>
-    
-    <!-- Sidebar Navigation -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <img src="/favicon.svg" alt="Logo" class="sidebar-logo">
-            <h3>Share<span>Boost</span></h3>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-page="dashboard">
-                <i class="fas fa-tachometer-alt"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-item" data-page="sessions">
-                <i class="fas fa-tasks"></i>
-                <span>Active Sessions</span>
-            </a>
-            <a href="#" class="nav-item" data-page="history">
-                <i class="fas fa-history"></i>
-                <span>History</span>
-            </a>
-            <a href="#" class="nav-item" data-page="analytics">
-                <i class="fas fa-chart-line"></i>
-                <span>Analytics</span>
-            </a>
-            <a href="#" class="nav-item" data-page="settings">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-        </nav>
-        <div class="sidebar-footer">
-            <button class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="top-bar-stats">
-                <div class="top-stat">
-                    <i class="fas fa-chart-simple"></i>
-                    <span id="topTotalShares">0</span>
-                    <small>Total Shares</small>
-                </div>
-                <div class="top-stat">
-                    <i class="fas fa-play-circle"></i>
-                    <span id="topActiveSessions">0</span>
-                    <small>Active</small>
-                </div>
-                <div class="top-stat">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="topCompletedSessions">0</span>
-                    <small>Completed</small>
-                </div>
-            </div>
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <span>Welcome Back</span>
-            </div>
-        </div>
-
-        <!-- Dashboard Page -->
-        <div id="dashboardPage" class="page active">
-            <div class="wrapper-container">
-                <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card claymorphism">
-                        <i class="fas fa-chart-line stat-icon"></i>
-                        <div class="stat-info">
-                            <h3 id="totalShares">0</h3>
-                            <p>Total Shares</p>
-                        </div>
-                    </div>
-                    <div class="stat-card claymorphism">
-                        <i class="fas fa-users stat-icon"></i>
-                        <div class="stat-info">
-                            <h3 id="activeSessions">0</h3>
-                            <p>Active Sessions</p>
-                        </div>
-                    </div>
-                    <div class="stat-card claymorphism">
-                        <i class="fas fa-check-circle stat-icon"></i>
-                        <div class="stat-info">
-                            <h3 id="completedSessions">0</h3>
-                            <p>Completed</p>
-                        </div>
-                    </div>
-                    <div class="stat-card claymorphism">
-                        <i class="fas fa-clock stat-icon"></i>
-                        <div class="stat-info">
-                            <h3 id="successRate">100</h3>
-                            <p>Success Rate %</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Form Section -->
-                <div class="form-wrapper claymorphism">
-                    <h2><i class="fas fa-rocket"></i> Start New Campaign</h2>
-                    <p class="form-description">Enter your credentials and target details</p>
-                    
-                    <form onsubmit="submitForm(event)" class="form-container">
-                        <div class="form-group">
-                            <label for="cookies">
-                                <i class="fas fa-key"></i> AppState / Cookies
-                                <span class="tooltip" data-tooltip="Paste your Facebook appstate JSON array">
-                                    <i class="fas fa-info-circle"></i>
-                                </span>
-                            </label>
-                            <textarea id="cookies" name="cookie" placeholder='[{"key":"sb","value":"xxx"},{"key":"datr","value":"xxx"}]' rows="3"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="urls">
-                                <i class="fas fa-link"></i> Post URL
-                                <span class="tooltip" data-tooltip="Facebook post URL to share">
-                                    <i class="fas fa-info-circle"></i>
-                                </span>
-                            </label>
-                            <input type="text" id="urls" name="url" placeholder="https://www.facebook.com/...">
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="amounts">
-                                    <i class="fas fa-chart-simple"></i> Share Limit
-                                </label>
-                                <div class="input-with-icon">
-                                    <input type="number" id="amounts" name="amount" placeholder="100" min="1" max="10000" value="100">
-                                    <span class="input-hint">max 10,000</span>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="intervals">
-                                    <i class="fas fa-clock"></i> Delay (seconds)
-                                    <span class="recommended-badge">Recommended: 2s</span>
-                                </label>
-                                <div class="input-with-icon">
-                                    <input type="number" id="intervals" name="interval" placeholder="2" min="1" max="60" value="2">
-                                    <span class="input-hint">1-60 sec</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" id="submit-button" class="submit-btn">
-                            <i class="fas fa-play"></i>
-                            <span>Start Sharing</span>
-                        </button>
-                        
-                        <div id="result" class="result-message"></div>
-                    </form>
-                </div>
-
-                <!-- Active Sessions Section -->
-                <div class="container claymorphism" id="process-container">
-                    <div class="section-header">
-                        <i class="fas fa-tasks"></i>
-                        <h2>Active Sessions</h2>
-                        <span class="session-count" id="session-count">0</span>
-                        <button class="refresh-btn" onclick="loadProcessing()">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                    <div id="processing" class="processing-list">
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No active sessions</p>
-                            <small>Start a new campaign to see sessions here</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Tips -->
-                <div class="tips-container claymorphism">
-                    <h3><i class="fas fa-lightbulb"></i> Quick Tips</h3>
-                    <div class="tips-grid">
-                        <div class="tip-item">
-                            <i class="fas fa-database"></i>
-                            <p>How to get AppState?</p>
-                            <small>Use FBCookies or extract from browser</small>
-                        </div>
-                        <div class="tip-item">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <p>Recommended Settings</p>
-                            <small>Delay: 2s | Limit: 100-500 per session</small>
-                        </div>
-                        <div class="tip-item">
-                            <i class="fas fa-chart-line"></i>
-                            <p>Monitor Progress</p>
-                            <small>Real-time updates every 500ms</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sessions Page -->
-        <div id="sessionsPage" class="page">
-            <div class="wrapper-container">
-                <div class="claymorphism" style="padding: 32px;">
-                    <h2><i class="fas fa-history"></i> Session History</h2>
-                    <div id="sessionHistory" class="session-history-list">
-                        <!-- Session history will be loaded here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Analytics Page -->
-        <div id="analyticsPage" class="page">
-            <div class="wrapper-container">
-                <div class="claymorphism" style="padding: 32px;">
-                    <h2><i class="fas fa-chart-pie"></i> Analytics Dashboard</h2>
-                    <div class="analytics-grid">
-                        <div class="analytics-card">
-                            <h4>Daily Performance</h4>
-                            <canvas id="dailyChart" width="400" height="200"></canvas>
-                        </div>
-                        <div class="analytics-card">
-                            <h4>Session Distribution</h4>
-                            <canvas id="sessionChart" width="400" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Page -->
-        <div id="settingsPage" class="page">
-            <div class="wrapper-container">
-                <div class="claymorphism" style="padding: 32px;">
-                    <h2><i class="fas fa-cog"></i> Settings</h2>
-                    <div class="settings-section">
-                        <h3>Appearance</h3>
-                        <div class="setting-item">
-                            <label>Dark Mode</label>
-                            <label class="switch">
-                                <input type="checkbox" id="darkModeToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label>Auto-refresh (ms)</label>
-                            <select id="refreshRate">
-                                <option value="500">500ms (Fast)</option>
-                                <option value="1000">1s (Normal)</option>
-                                <option value="2000">2s (Slow)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Notifications</h3>
-                        <div class="setting-item">
-                            <label>Sound Alerts</label>
-                            <label class="switch">
-                                <input type="checkbox" id="soundToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <label>Desktop Notifications</label>
-                            <label class="switch">
-                                <input type="checkbox" id="notificationToggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Data Management</h3>
-                        <button class="danger-btn" onclick="clearHistory()">
-                            <i class="fas fa-trash"></i> Clear Session History
-                        </button>
-                        <button class="primary-btn" onclick="exportData()">
-                            <i class="fas fa-download"></i> Export All Data
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-container {
+            max-width: 500px;
+            width: 90%;
+            background: rgba(30, 30, 45, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+        
+        .modal-header {
+            padding: 24px 24px 16px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-header h2 {
+            color: #fff;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0;
+        }
+        
+        .modal-header h2 i {
+            color: #ffd89b;
+        }
+        
+        .modal-body {
+            padding: 24px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .greeting-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            border-radius: 20px;
+        }
+        
+        .privacy-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .privacy-box h3 {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .privacy-box p {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+        
+        .privacy-box ul {
+            padding-left: 20px;
+            margin: 12px 0;
+        }
+        
+        .privacy-box li {
+            font-size: 12px;
+            margin: 6px 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .agree-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .agree-checkbox:hover {
+            background: rgba(102, 126, 234, 0.25);
+        }
+        
+        .agree-checkbox input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        
+        .agree-checkbox label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #fff;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 14px;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .modal-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .modal-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .error-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideUp 0.4s ease;
+        }
+        
+        .error-code {
+            font-size: 120px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #ffd89b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+        }
+        
+        .error-icon {
+            font-size: 80px;
+            color: #ffd89b;
+            margin-bottom: 20px;
+        }
+        
+        .error-title {
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+        
+        .error-message {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .error-btn {
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        .error-btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .error-btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .error-btn-primary:hover, .error-btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            overflow-x: hidden;
+            padding: 40px 20px;
+            position: relative;
         }
-
         .background-gradient {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            background: radial-gradient(circle at 20% 80%, rgba(120,119,198,0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
             pointer-events: none;
         }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 260px;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .sidebar.collapsed {
-            transform: translateX(-260px);
-        }
-
-        .sidebar-header {
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .sidebar-logo {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 10px;
-        }
-
-        .sidebar-header h3 {
-            color: #fff;
-            font-size: 20px;
-        }
-
-        .sidebar-header h3 span {
-            font-weight: 300;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            margin: 4px 12px;
-            border-radius: 12px;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 68, 68, 0.3);
-            border-color: #ff4444;
-        }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 260px;
-            transition: all 0.3s ease;
-            min-height: 100vh;
-        }
-
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        /* Top Bar */
-        .top-bar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 16px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 99;
-        }
-
-        .menu-toggle {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-            display: none;
-        }
-
-        .top-bar-stats {
-            display: flex;
-            gap: 30px;
-        }
-
-        .top-stat {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #fff;
-        }
-
-        .top-stat span {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .top-stat small {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #fff;
-        }
-
-        /* Pages */
-        .page {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .wrapper-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 24px;
+            position: relative;
+            z-index: 1;
         }
-
-        /* Claymorphism */
         .claymorphism {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .claymorphism:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            padding: 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .stat-icon {
-            font-size: 42px;
-            color: #fff;
-        }
-
-        .stat-info h3 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 4px;
-        }
-
-        .stat-info p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 13px;
-        }
-
-        /* Form Styles */
-        .form-wrapper {
-            padding: 32px;
-            margin-bottom: 24px;
-        }
-
-        .form-wrapper h2 {
-            color: #fff;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 28px;
-        }
-
-        .form-description {
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .recommended-badge {
-            background: rgba(76, 175, 80, 0.3);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            color: #4caf50;
-            margin-left: 8px;
-        }
-
-        .tooltip {
-            position: relative;
-            cursor: help;
-        }
-
-        .tooltip:hover::before {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 10;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: 'Inter', monospace;
-            transition: all 0.3s ease;
-            color: #333;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: #fff;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .input-with-icon {
-            position: relative;
-        }
-
-        .input-hint {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 11px;
-            color: #999;
-            pointer-events: none;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            margin-top: 8px;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .result-message {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: 500;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        .result-message.success {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid #4caf50;
-            color: #4caf50;
-            display: block;
-        }
-
-        .result-message.error {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid #f44336;
-            color: #f44336;
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Processing Section */
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-            color: #fff;
-            flex-wrap: wrap;
-        }
-
-        .section-header h2 {
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 0;
-        }
-
-        .session-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-
-        .refresh-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(180deg);
-        }
-
-        .processing-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: 200px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .process-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
-            padding: 16px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-            animation: slideIn 0.3s ease;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .process-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(4px);
-        }
-
-        .process-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .process-url {
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 14px;
-            word-break: break-all;
-        }
-
-        .process-progress {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .progress-bar {
-            flex: 1;
-            min-width: 150px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 1s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .process-stats {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .stat-badge {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #fff;
-            white-space: nowrap;
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .status-running {
-            background: rgba(33, 150, 243, 0.3);
-            color: #42a5f5;
-        }
-
-        .status-completed {
-            background: rgba(76, 175, 80, 0.3);
-            color: #4caf50;
-        }
-
-        .status-failed, .status-timeout {
-            background: rgba(244, 67, 54, 0.3);
-            color: #f44336;
-        }
-
-        .stop-session-btn {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.5);
-            color: #f44336;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .stop-session-btn:hover {
-            background: rgba(244, 67, 54, 0.4);
-        }
-
-        /* Tips Container */
-        .tips-container {
-            padding: 24px;
-            margin-top: 24px;
-        }
-
-        .tips-container h3 {
-            color: #fff;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tips-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
-
-        .tip-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 16px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .tip-item i {
-            font-size: 24px;
-            color: #ffd89b;
-            margin-bottom: 8px;
-        }
-
-        .tip-item p {
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .tip-item small {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 11px;
-        }
-
-        /* Settings */
-        .settings-section {
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .settings-section h3 {
-            color: #fff;
-            margin-bottom: 16px;
-        }
-
-        .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            color: #fff;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.2);
-            transition: 0.3s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #667eea;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .danger-btn, .primary-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-right: 12px;
-            margin-top: 12px;
-        }
-
-        .danger-btn {
-            background: rgba(244, 67, 54, 0.2);
-            color: #f44336;
-            border: 1px solid #f44336;
-        }
-
-        .primary-btn {
-            background: rgba(102, 126, 234, 0.2);
-            color: #667eea;
-            border: 1px solid #667eea;
-        }
-
-        /* Analytics */
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 24px;
-            margin-top: 24px;
-        }
-
-        .analytics-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 16px;
-        }
-
-        .analytics-card h4 {
-            color: #fff;
-            margin-bottom: 16px;
-        }
-
-        canvas {
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Session History */
-        .session-history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 20px;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .history-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 16px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-260px);
-            }
-            
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .top-bar-stats {
-                display: none;
-            }
-            
-            .analytics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .process-card {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .process-stats {
-                justify-content: space-between;
-            }
-        }
+            transition: transform 0.3s ease;
+        }
+        .container, .form-wrapper { padding: 32px; margin-bottom: 24px; }
+        .logo-container { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+        .logo-icon { font-size: 48px; color: #1877f2; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        h1 { font-size: 42px; font-weight: 800; background: linear-gradient(135deg, #fff, #e0e0e0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        h1 span { font-weight: 300; background: linear-gradient(135deg, #ffd89b, #c7e9fb); -webkit-background-clip: text; background-clip: text; }
+        .tagline { text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 24px; }
+        .badge-container { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .badge { background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 500; margin-bottom: 8px; }
+        input, textarea { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.95); border: none; border-radius: 12px; font-size: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .result-message { margin-top: 16px; padding: 12px; border-radius: 12px; display: none; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 20px; margin-bottom: 24px; }
+        .stat-card { padding: 24px; display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 32px; }
+        .stat-icon { font-size: 36px; color: #fff; }
+        .stat-info h3 { font-size: 28px; color: #fff; }
+        .process-card { background: rgba(255,255,255,0.1); padding: 16px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .section-header { display: flex; justify-content: space-between; color: white; margin-bottom: 20px; }
+        .session-count { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; }
+        .process-url { color: #fff; font-size: 14px; margin-bottom: 8px; }
+        .stat-badge { background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; font-size: 12px; color: #fff; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .github-link { display: inline-flex; gap: 8px; background: rgba(255,255,255,0.15); padding: 10px 20px; border-radius: 12px; color: #fff; text-decoration: none; }
+        .about-content { text-align: center; }
+        .about-icon { font-size: 48px; color: #fff; margin-bottom: 16px; }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
     </style>
+</head>
+<body>
+<div id="app-root"></div>
 
-    <script>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorType = urlParams.get('error');
+    
+    if (errorType === '404' || errorType === '500' || window.location.pathname.includes('404') || window.location.pathname.includes('500')) {
+        let code = errorType === '404' ? '404' : '500';
+        if (window.location.pathname.includes('404')) code = '404';
+        if (window.location.pathname.includes('500')) code = '500';
+        
+        const errorMessages = {
+            404: { title: 'Page Not Found', message: "The page you're looking for doesn't exist or has been moved. Let's get you back on track.", icon: 'fa-face-frown' },
+            500: { title: 'Server Error', message: 'Something went wrong on our end. Our team has been notified. Please try again later.', icon: 'fa-server' }
+        };
+        const err = errorMessages[code] || errorMessages[500];
+        
+        document.body.innerHTML = `
+            <div class="background-gradient"></div>
+            <div class="error-container">
+                <div class="error-card">
+                    <div class="error-icon"><i class="fas ${err.icon}"></i></div>
+                    <div class="error-code">${code}</div>
+                    <h1 class="error-title">${err.title}</h1>
+                    <p class="error-message">${err.message}</p>
+                    <div class="error-actions">
+                        <a href="/" class="error-btn error-btn-primary"><i class="fas fa-home"></i> Back to Home</a>
+                        <button onclick="location.reload()" class="error-btn error-btn-secondary"><i class="fas fa-sync-alt"></i> Try Again</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.style.padding = '0';
+        document.body.style.display = 'flex';
+        document.body.style.alignItems = 'center';
+        document.body.style.justifyContent = 'center';
+    } else {
+        renderMainApp();
+    }
+    
+    function renderMainApp() {
+        const appHtml = `
+            <div class="background-gradient"></div>
+            <div class="wrapper-container">
+                <div class="container claymorphism">
+                    <div class="logo-container">
+                        <i class="fab fa-facebook logo-icon"></i>
+                        <h1>FACEBOOK<span>SHARE BOOSTER</span></h1>
+                    </div>
+                    <p class="tagline">Automated Facebook post sharing — Boost engagement instantly</p>
+                    <div class="badge-container">
+                        <span class="badge"><i class="fas fa-bolt"></i> Fast Processing</span>
+                        <span class="badge"><i class="fas fa-shield-alt"></i> Secure</span>
+                        <span class="badge"><i class="fas fa-chart-line"></i> Real-time Stats</span>
+                    </div>
+                </div>
+
+                <div class="form-wrapper claymorphism">
+                    <h2><i class="fas fa-rocket"></i> Start Boosting</h2>
+                    <p class="form-description" style="color:rgba(255,255,255,0.7);margin-bottom:24px;">Enter your credentials and target details</p>
+                    <form onsubmit="submitForm(event)" class="form-container">
+                        <div class="form-group">
+                            <label><i class="fas fa-key"></i> AppState / Cookies</label>
+                            <textarea id="cookies" rows="3" placeholder='[{"key":"sb","value":"xxx"},{"key":"datr","value":"xxx"}]'></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-link"></i> Post URL</label>
+                            <input type="text" id="urls" placeholder="https://www.facebook.com/...">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-chart-simple"></i> Share Limit</label>
+                                <input type="number" id="amounts" min="1" max="10000" value="100">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-clock"></i> Delay (seconds)</label>
+                                <input type="number" id="intervals" min="1" max="60" value="2">
+                            </div>
+                        </div>
+                        <button type="submit" id="submit-button" class="submit-btn">
+                            <i class="fas fa-play"></i><span>Start Sharing</span>
+                        </button>
+                        <div id="result" class="result-message"></div>
+                    </form>
+                </div>
+
+                <div class="container claymorphism" id="process-container" style="display: none;">
+                    <div class="section-header">
+                        <h2 style="font-size:24px;display:flex;align-items:center;gap:12px;"><i class="fas fa-tasks"></i> Active Sessions</h2>
+                        <span class="session-count" id="session-count">0</span>
+                    </div>
+                    <div id="processing" class="processing-list"></div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card"><i class="fas fa-chart-line stat-icon"></i><div class="stat-info"><h3 id="total-shares">0</h3><p>Total Shares</p></div></div>
+                    <div class="stat-card"><i class="fas fa-users stat-icon"></i><div class="stat-info"><h3 id="active-sessions">0</h3><p>Active Sessions</p></div></div>
+                    <div class="stat-card"><i class="fas fa-check-circle stat-icon"></i><div class="stat-info"><h3 id="completed-sessions">0</h3><p>Completed</p></div></div>
+                </div>
+
+                <div class="container claymorphism">
+                    <div class="about-content">
+                        <i class="fas fa-code-branch about-icon"></i>
+                        <h3 style="color:#fff">Open Source Project</h3>
+                        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;">Facebook Share Booster is an automated sharing tool. Contribute on GitHub.</p>
+                        <a href="#" id="github-link" class="github-link"><i class="fab fa-github"></i> View on GitHub</a>
+                    </div>
+                </div>
+            </div>
+            <div id="privacyModal" class="modal-overlay">
+                <div class="modal-container">
+                    <div class="modal-header"><h2><i class="fas fa-hand-peace"></i> Welcome to Facebook Share Booster!</h2></div>
+                    <div class="modal-body">
+                        <div class="greeting-text"><i class="fas fa-smile-wink" style="font-size:24px"></i><span>Hello! 👋 Thank you for choosing our tool.</span></div>
+                        <div class="privacy-box">
+                            <h3><i class="fas fa-shield-heart"></i> Privacy Policy Agreement</h3>
+                            <p>By using Facebook Share Booster, you acknowledge:</p>
+                            <ul>
+                                <li><i class="fas fa-check-circle"></i> We do NOT store any cookies or personal data.</li>
+                                <li><i class="fas fa-check-circle"></i> All actions are performed from your browser session.</li>
+                                <li><i class="fas fa-check-circle"></i> You comply with Facebook's Terms of Service.</li>
+                                <li><i class="fas fa-check-circle"></i> Tool for educational & automation purposes.</li>
+                            </ul>
+                        </div>
+                        <div class="agree-checkbox" id="agreeCheckboxWrapper">
+                            <input type="checkbox" id="agreeCheckbox"><label for="agreeCheckbox">I have read and agree to the Privacy Policy</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn modal-btn-secondary" id="declineBtn">Decline</button>
+                        <button class="modal-btn modal-btn-primary" id="acceptBtn" disabled>Continue</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('app-root').innerHTML = appHtml;
+        
+        let modalAccepted = false;
+        const modal = document.getElementById('privacyModal');
+        const agreeCheckbox = document.getElementById('agreeCheckbox');
+        const acceptBtn = document.getElementById('acceptBtn');
+        const declineBtn = document.getElementById('declineBtn');
+        
+        function enableAccept() { acceptBtn.disabled = !agreeCheckbox.checked; }
+        agreeCheckbox?.addEventListener('change', enableAccept);
+        
+        function closeModalAndStart() {
+            if (!agreeCheckbox.checked) {
+                showResultMsg('Please accept the Privacy Policy to continue.', 'error');
+                return;
+            }
+            modalAccepted = true;
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            initApp();
+        }
+        
+        function declineAndReload() {
+            alert('You must accept the Privacy Policy to use Facebook Share Booster.');
+            window.location.href = '/';
+        }
+        
+        acceptBtn?.addEventListener('click', closeModalAndStart);
+        declineBtn?.addEventListener('click', declineAndReload);
+        
+        window.showResultMsg = function(msg, type) {
+            const resDiv = document.getElementById('result');
+            if(resDiv) {
+                resDiv.textContent = msg;
+                resDiv.className = `result-message ${type}`;
+                resDiv.style.display = 'block';
+                setTimeout(() => { resDiv.style.display = 'none'; }, 4000);
+            } else { alert(msg); }
+        };
+        
         let refreshInterval = null;
-        let lastTimestamp = 0;
-        let sessionHistory = [];
-        let soundEnabled = false;
-        let notificationsEnabled = false;
-
-        // Load settings from localStorage
-        function loadSettings() {
-            const darkMode = localStorage.getItem('darkMode') === 'true';
-            const savedRefreshRate = localStorage.getItem('refreshRate') || '500';
-            soundEnabled = localStorage.getItem('soundEnabled') === 'true';
-            notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
-            
-            document.getElementById('darkModeToggle').checked = darkMode;
-            document.getElementById('refreshRate').value = savedRefreshRate;
-            document.getElementById('soundToggle').checked = soundEnabled;
-            document.getElementById('notificationToggle').checked = notificationsEnabled;
-            
-            if (darkMode) {
-                document.body.classList.add('dark-mode');
-            }
-            
-            return parseInt(savedRefreshRate);
-        }
-
-        // Request notification permission
-        if (notificationsEnabled && 'Notification' in window) {
-            Notification.requestPermission();
-        }
-
-        // Play sound
-        function playSound() {
-            if (soundEnabled) {
-                const audio = new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==');
-                audio.play().catch(() => {});
-            }
-        }
-
-        // Show notification
-        function showNotification(title, body) {
-            if (notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
-                new Notification(title, { body, icon: '/favicon.svg' });
-            }
-        }
-
-        // Submit form
+        
         async function submitForm(event) {
             event.preventDefault();
-            const result = document.getElementById('result');
-            const button = document.getElementById('submit-button');
-            
+            if (!modalAccepted) { showResultMsg('Please accept Privacy Policy first', 'error'); return; }
             const cookies = document.getElementById('cookies').value;
             const url = document.getElementById('urls').value;
             const amount = document.getElementById('amounts').value;
             const interval = document.getElementById('intervals').value;
-
-            if (!cookies || !url || !amount || !interval) {
-                showResult('Please fill in all fields', 'error');
-                return;
-            }
-
+            if (!cookies || !url) { showResultMsg('Fill all fields', 'error'); return; }
+            const btn = document.getElementById('submit-button');
             try {
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                 const response = await fetch('/api/submit', {
                     method: 'POST',
-                    body: JSON.stringify({
-                        cookie: cookies,
-                        url: url,
-                        amount: parseInt(amount),
-                        interval: parseInt(interval),
-                    }),
                     headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookie: cookies, url, amount: parseInt(amount), interval: parseInt(interval) })
                 });
-                
+                if (response.status === 404) throw new Error('API endpoint not found (404)');
+                if (response.status === 500) throw new Error('Server error (500)');
                 const data = await response.json();
-
-                if (data.success || data.status === 200) {
-                    showResult('✓ Session started successfully!', 'success');
-                    playSound();
-                    showNotification('Session Started', `Sharing ${amount} shares with ${interval}s delay`);
-                    
-                    // Clear form except cookies
+                if (data.success) {
+                    showResultMsg('✓ Session started!', 'success');
+                    document.getElementById('cookies').value = '';
                     document.getElementById('urls').value = '';
-                    document.getElementById('amounts').value = '100';
-                    document.getElementById('intervals').value = '2';
-                    
-                    await loadProcessing();
-                } else {
-                    showResult('Error: ' + (data.error || 'Unknown error'), 'error');
-                }
-            } catch (e) {
-                console.error(e);
-                showResult('Error: ' + e.message, 'error');
-            } finally {
-                button.disabled = false;
-                button.innerHTML = '<i class="fas fa-play"></i><span>Start Sharing</span>';
-            }
-        }
-
-        function showResult(message, type) {
-            const result = document.getElementById('result');
-            result.textContent = message;
-            result.className = `result-message ${type}`;
-            setTimeout(() => {
-                result.className = 'result-message';
-                result.style.display = 'none';
-            }, 5000);
-        }
-
-        // Load processing sessions
-        async function loadProcessing() {
-            try {
-                const response = await fetch('/api/total');
-                if (!response.ok) throw new Error('Failed to fetch');
-                
-                const data = await response.json();
-                const container = document.getElementById('processing');
-                const processContainer = document.getElementById('process-container');
-                
-                if (!data.sessions || data.sessions.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No active sessions</p>
-                            <small>Start a new campaign to see sessions here</small>
-                        </div>
-                    `;
-                    document.getElementById('session-count').textContent = '0';
-                    return;
-                }
-                
-                container.innerHTML = '';
-                
-                // Update stats
-                let totalShares = 0;
-                let activeSessions = 0;
-                let completedSessions = 0;
-                
-                data.sessions.forEach(session => {
-                    totalShares += session.sharedCount;
-                    if (session.status === 'running') activeSessions++;
-                    if (session.status === 'completed') completedSessions++;
-                    
-                    const processCard = createProcessCard(session);
-                    container.appendChild(processCard);
-                    
-                    // Save to history if completed
-                    if (session.status === 'completed' && !sessionHistory.find(s => s.sessionId === session.sessionId)) {
-                        sessionHistory.unshift({
-                            sessionId: session.sessionId,
-                            url: session.url,
-                            sharedCount: session.sharedCount,
-                            targetAmount: session.targetAmount,
-                            completedAt: new Date().toISOString()
-                        });
-                        // Keep only last 50 history items
-                        if (sessionHistory.length > 50) sessionHistory.pop();
-                        localStorage.setItem('sessionHistory', JSON.stringify(sessionHistory));
-                    }
-                });
-                
-                document.getElementById('totalShares').textContent = totalShares;
-                document.getElementById('activeSessions').textContent = activeSessions;
-                document.getElementById('completedSessions').textContent = completedSessions;
-                document.getElementById('session-count').textContent = data.activeSessions;
-                
-                // Top bar stats
-                document.getElementById('topTotalShares').textContent = totalShares;
-                document.getElementById('topActiveSessions').textContent = activeSessions;
-                document.getElementById('topCompletedSessions').textContent = completedSessions;
-                
-                // Success rate
-                const totalAttempts = totalShares + (data.sessions.filter(s => s.status === 'failed').length * (s.targetAmount || 0));
-                const successRate = totalAttempts > 0 ? ((totalShares / totalAttempts) * 100).toFixed(1) : 100;
-                document.getElementById('successRate').textContent = successRate;
-                
-                // Load session history
-                loadSessionHistory();
-                
-                // Update analytics
-                updateAnalytics(data.sessions);
-                
-            } catch (error) {
-                console.error('Error loading processing:', error);
-            }
-        }
-
-        function createProcessCard(session) {
-            const card = document.createElement('div');
-            card.className = 'process-card';
-            card.setAttribute('data-session-id', session.sessionId);
-            
-            const percentage = (session.sharedCount / session.targetAmount) * 100;
-            
-            card.innerHTML = `
-                <div class="process-info">
-                    <div class="process-url">
-                        <i class="fas fa-link"></i> ${session.url.substring(0, 60)}${session.url.length > 60 ? '...' : ''}
-                    </div>
-                    <div class="process-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${percentage}%"></div>
-                        </div>
-                        <span style="color: #fff; font-size: 12px; min-width: 45px;">${percentage.toFixed(1)}%</span>
-                    </div>
-                </div>
-                <div class="process-stats">
-                    <span class="stat-badge">
-                        <i class="fas fa-chart-simple"></i> ${session.sharedCount}/${session.targetAmount}
-                    </span>
-                    <span class="status-badge status-${session.status}">
-                        <i class="fas ${session.status === 'running' ? 'fa-play' : (session.status === 'completed' ? 'fa-check' : 'fa-exclamation-triangle')}"></i> 
-                        ${session.status.toUpperCase()}
-                    </span>
-                    ${session.status === 'running' ? `
-                        <button class="stop-session-btn" onclick="stopSession('${session.sessionId}')">
-                            <i class="fas fa-stop"></i> Stop
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-            
-            return card;
-        }
-
-        async function stopSession(sessionId) {
-            if (!confirm('Are you sure you want to stop this session?')) return;
-            
-            try {
-                const response = await fetch(`/api/session/${sessionId}`, { method: 'DELETE' });
-                if (response.ok) {
-                    showResult('Session stopped successfully', 'success');
-                    await loadProcessing();
-                } else {
-                    showResult('Failed to stop session', 'error');
-                }
-            } catch (error) {
-                showResult('Error: ' + error.message, 'error');
-            }
-        }
-
-        function loadSessionHistory() {
-            const savedHistory = localStorage.getItem('sessionHistory');
-            if (savedHistory) {
-                sessionHistory = JSON.parse(savedHistory);
-            }
-            
-            const historyContainer = document.getElementById('sessionHistory');
-            if (historyContainer && sessionHistory.length > 0) {
-                historyContainer.innerHTML = sessionHistory.map(item => `
-                    <div class="history-item">
-                        <div>
-                            <strong>${item.url.substring(0, 50)}...</strong><br>
-                            <small>${new Date(item.completedAt).toLocaleString()}</small>
-                        </div>
-                        <div>
-                            <span class="stat-badge">${item.sharedCount}/${item.targetAmount} shares</span>
-                        </div>
-                    </div>
-                `).join('');
-            } else if (historyContainer) {
-                historyContainer.innerHTML = '<div class="empty-state"><p>No session history yet</p></div>';
-            }
-        }
-
-        function clearHistory() {
-            if (confirm('Clear all session history?')) {
-                sessionHistory = [];
-                localStorage.removeItem('sessionHistory');
-                loadSessionHistory();
-                showResult('History cleared', 'success');
-            }
-        }
-
-        function exportData() {
-            const data = {
-                sessions: sessionHistory,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `shareboost-export-${Date.now()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showResult('Data exported successfully', 'success');
-        }
-
-        function updateAnalytics(sessions) {
-            const dailyCtx = document.getElementById('dailyChart');
-            const sessionCtx = document.getElementById('sessionChart');
-            
-            if (dailyCtx) {
-                // Simple analytics update
-                const running = sessions.filter(s => s.status === 'running').length;
-                const completed = sessions.filter(s => s.status === 'completed').length;
-                const failed = sessions.filter(s => s.status === 'failed' || s.status === 'timeout').length;
-                
-                // Update existing charts or create simple text display
-                const analyticsContainer = document.querySelector('.analytics-grid');
-                if (analyticsContainer && (!dailyCtx.getContext || !sessionCtx.getContext)) {
-                    analyticsContainer.innerHTML = `
-                        <div class="analytics-card">
-                            <h4>Session Summary</h4>
-                            <div style="color: #fff;">
-                                <p>🟢 Running: ${running}</p>
-                                <p>✅ Completed: ${completed}</p>
-                                <p>❌ Failed: ${failed}</p>
-                                <p>📊 Total Sessions: ${sessions.length}</p>
-                            </div>
-                        </div>
-                        <div class="analytics-card">
-                            <h4>Performance</h4>
-                            <div style="color: #fff;">
-                                <p>⚡ Refresh Rate: ${document.getElementById('refreshRate')?.value || 500}ms</p>
-                                <p>🎯 120Hz Smooth Mode: Active</p>
-                                <p>🔄 Auto-refresh: Enabled</p>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '/';
-            }
-        }
-
-        // Navigation
-        function initNavigation() {
-            const navItems = document.querySelectorAll('.nav-item');
-            const pages = document.querySelectorAll('.page');
-            
-            navItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const pageId = item.dataset.page + 'Page';
-                    
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-                    
-                    pages.forEach(page => page.classList.remove('active'));
-                    document.getElementById(pageId).classList.add('active');
-                });
-            });
-        }
-
-        // Settings
-        function initSettings() {
-            const refreshRate = document.getElementById('refreshRate');
-            const darkModeToggle = document.getElementById('darkModeToggle');
-            const soundToggle = document.getElementById('soundToggle');
-            const notificationToggle = document.getElementById('notificationToggle');
-            
-            if (refreshRate) {
-                refreshRate.addEventListener('change', (e) => {
-                    localStorage.setItem('refreshRate', e.target.value);
-                    // Refresh will apply on next interval
-                });
-            }
-            
-            if (darkModeToggle) {
-                darkModeToggle.addEventListener('change', (e) => {
-                    localStorage.setItem('darkMode', e.target.checked);
-                    document.body.classList.toggle('dark-mode', e.target.checked);
-                });
-            }
-            
-            if (soundToggle) {
-                soundToggle.addEventListener('change', (e) => {
-                    soundEnabled = e.target.checked;
-                    localStorage.setItem('soundEnabled', soundEnabled);
-                });
-            }
-            
-            if (notificationToggle) {
-                notificationToggle.addEventListener('change', (e) => {
-                    notificationsEnabled = e.target.checked;
-                    localStorage.setItem('notificationsEnabled', notificationsEnabled);
-                    if (notificationsEnabled && 'Notification' in window) {
-                        Notification.requestPermission();
-                    }
-                });
-            }
-        }
-
-        // Mobile menu
-        function initMobileMenu() {
-            const menuToggle = document.getElementById('menuToggle');
-            const sidebar = document.getElementById('sidebar');
-            
-            if (menuToggle) {
-                menuToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('mobile-open');
-                });
-            }
-        }
-
-        // 120Hz Smooth Refresh
-        function initSmoothRefresh() {
-            let refreshMs = parseInt(localStorage.getItem('refreshRate') || '500');
-            
-            function smoothRefresh() {
-                const now = performance.now();
-                const delta = now - lastTimestamp;
-                
-                if (delta >= refreshMs) {
                     loadProcessing();
-                    lastTimestamp = now;
+                } else {
+                    showResultMsg('Error: ' + (data.error || 'Unknown'), 'error');
                 }
-                
-                requestAnimationFrame(smoothRefresh);
+            } catch(e) {
+                console.error(e);
+                if(e.message.includes('404')) window.location.href = '/?error=404';
+                else if(e.message.includes('500')) window.location.href = '/?error=500';
+                else showResultMsg(e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i><span>Start Sharing</span>';
             }
-            
-            lastTimestamp = performance.now();
-            requestAnimationFrame(smoothRefresh);
-        }
-
-        // Initialize
-        async function init() {
-            loadSettings();
-            initNavigation();
-            initSettings();
-            initMobileMenu();
-            initSmoothRefresh();
-            await loadProcessing();
-            
-            // Listen for refresh rate changes
-            document.getElementById('refreshRate')?.addEventListener('change', () => {
-                // Refresh rate will be picked up in the next animation frame
-            });
         }
         
-        init();
-    </script>
+        async function loadProcessing() {
+            if (!modalAccepted) return;
+            try {
+                const res = await fetch('/api/total');
+                if (res.status === 500) throw new Error('500');
+                if (!res.ok) return;
+                const data = await res.json();
+                const container = document.getElementById('processing');
+                const processContainer = document.getElementById('process-container');
+                if (!data.sessions || data.sessions.length === 0) {
+                    processContainer.style.display = 'none';
+                    return;
+                }
+                processContainer.style.display = 'block';
+                container.innerHTML = '';
+                let totalShares=0, active=0, completed=0;
+                data.sessions.forEach(s => {
+                    totalShares += s.sharedCount;
+                    if(s.status === 'running') active++;
+                    if(s.status === 'completed') completed++;
+                    const percent = (s.sharedCount / s.targetAmount)*100;
+                    const card = document.createElement('div');
+                    card.className = 'process-card';
+                    card.innerHTML = `
+                        <div><div class="process-url"><i class="fas fa-link"></i> ${s.url.substring(0,60)}${s.url.length>60?'...':''}</div>
+                        <div style="display:flex; gap:10px; margin-top:8px;"><div style="flex:1; height:6px; background:rgba(255,255,255,0.2); border-radius:3px;"><div style="width:${percent}%; height:100%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:3px;"></div></div><span style="color:#fff; font-size:12px;">${percent.toFixed(0)}%</span></div></div>
+                        <div style="display:flex; gap:12px;"><span class="stat-badge">${s.sharedCount}/${s.targetAmount}</span>
+                        <span class="status-badge" style="background:${s.status==='running'?'rgba(33,150,243,0.3)':'rgba(76,175,80,0.3)'}">${s.status.toUpperCase()}</span></div>
+                    `;
+                    container.appendChild(card);
+                });
+                document.getElementById('total-shares').innerText = totalShares;
+                document.getElementById('active-sessions').innerText = active;
+                document.getElementById('completed-sessions').innerText = completed;
+                document.getElementById('session-count').innerText = data.activeSessions;
+            } catch(e) {
+                if(e.message === '500') window.location.href = '/?error=500';
+            }
+        }
+        
+        function initApp() {
+            if(refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(loadProcessing, 2000);
+            loadProcessing();
+            document.getElementById('github-link')?.addEventListener('click', (e) => { e.preventDefault(); window.open('https://github.com', '_blank'); });
+            document.getElementById('amounts').value = '100';
+            document.getElementById('intervals').value = '2';
+        }
+        
+        window.submitForm = submitForm;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function showResultMsg(msg, type) {
+        const resDiv = document.getElementById('result');
+        if(resDiv) {
+            resDiv.textContent = msg;
+            resDiv.className = `result-message ${type}`;
+            resDiv.style.display = 'block';
+            setTimeout(() => { if(resDiv) resDiv.style.display = 'none'; }, 4000);
+        }
+    }
+</script>
 </body>
 </html>

@@ -4,6 +4,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
 const crypto = require('crypto');
+const HttpsProxyAgent = require('https-proxy-agent');
+const HttpProxyAgent = require('http-proxy-agent');
 
 const app = express();
 app.use(express.json());
@@ -16,23 +18,29 @@ const activeTimers = new Map();
 const requestQueue = new Map();
 const rateLimiter = new Map();
 const sessionLogs = new Map();
+const proxyStats = new Map(); // Track proxy performance
 
 // Configuration with anti-detection enhancements
 const CONFIG = {
-    MAX_CONCURRENT_SESSIONS: 3, // Reduced to avoid detection
-    RATE_LIMIT_WINDOW: 120000, // 2 minutes (increased)
-    MAX_REQUESTS_PER_WINDOW: 15, // Reduced significantly
+    MAX_CONCURRENT_SESSIONS: 3,
+    RATE_LIMIT_WINDOW: 120000,
+    MAX_REQUESTS_PER_WINDOW: 15,
     REQUEST_TIMEOUT: 45000,
     RETRY_ATTEMPTS: 2,
-    RETRY_DELAY: 5000, // Increased delay
+    RETRY_DELAY: 5000,
     LOG_RETENTION_DAYS: 7,
     // Anti-detection settings
-    MIN_DELAY_VARIATION: 2000, // Add random delay between requests
+    MIN_DELAY_VARIATION: 2000,
     MAX_DELAY_VARIATION: 8000,
     USER_AGENT_ROTATION: true,
-    PROXY_ROTATION: false, // Set to true if you have proxies
+    PROXY_ROTATION: true,
     USE_DELAY_BETWEEN_REQUESTS: true,
-    RANDOM_START_OFFSET: true
+    RANDOM_START_OFFSET: true,
+    // Proxy settings
+    PROXY_FAILURE_THRESHOLD: 3,
+    PROXY_BAN_TIME: 300000, // 5 minutes ban for failing proxies
+    PROXY_ROTATION_INTERVAL: 60000, // Rotate proxy every minute
+    PROXY_HEALTH_CHECK_INTERVAL: 300000 // Check proxy health every 5 minutes
 };
 
 // User agent rotation pool
@@ -45,11 +53,241 @@ const USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
 ];
 
-// Proxy pool (add your proxies here)
-const PROXIES = [
-    // 'http://proxy1:port',
-    // 'http://proxy2:port'
-];
+// Proxy pool configuration
+class ProxyManager {
+    constructor() {
+        this.proxies = [];
+        this.proxyStatus = new Map();
+        this.currentProxyIndex = 0;
+        this.loadProxiesFromFile();
+    }
+
+    async loadProxiesFromFile() {
+        try {
+            // Try to load proxies from file
+            const proxyFile = await fs.readFile('proxies.json', 'utf8').catch(() => '[]');
+            const proxyList = JSON.parse(proxyFile);
+            
+            if (proxyList.length > 0) {
+                this.proxies = proxyList;
+                console.log(`✅ Loaded ${this.proxies.length} proxies from proxies.json`);
+            } else {
+                // Default proxy list (add your own proxies here)
+                this.proxies = [
+                    // 'http://username:password@host:port',
+                    // 'socks5://username:password@host:port',
+                    // 'http://host:port',
+                ];
+                console.log('⚠️ No proxies configured. Running without proxy.');
+            }
+
+            // Initialize proxy status
+            this.proxies.forEach(proxy => {
+                this.proxyStatus.set(proxy, {
+                    failures: 0,
+                    lastUsed: 0,
+                    isBanned: false,
+                    banUntil: 0,
+                    successCount: 0,
+                    responseTime: []
+                });
+            });
+        } catch (error) {
+            console.error('Error loading proxies:', error);
+        }
+    }
+
+    async saveProxiesToFile() {
+        try {
+            await fs.writeFile('proxies.json', JSON.stringify(this.proxies, null, 2));
+            console.log('✅ Proxies saved to proxies.json');
+        } catch (error) {
+            console.error('Error saving proxies:', error);
+        }
+    }
+
+    addProxy(proxyUrl) {
+        if (!this.proxies.includes(proxyUrl)) {
+            this.proxies.push(proxyUrl);
+            this.proxyStatus.set(proxyUrl, {
+                failures: 0,
+                lastUsed: 0,
+                isBanned: false,
+                banUntil: 0,
+                successCount: 0,
+                responseTime: []
+            });
+            this.saveProxiesToFile();
+            console.log(`➕ Added proxy: ${proxyUrl}`);
+            return true;
+        }
+        return false;
+    }
+
+    removeProxy(proxyUrl) {
+        const index = this.proxies.indexOf(proxyUrl);
+        if (index > -1) {
+            this.proxies.splice(index, 1);
+            this.proxyStatus.delete(proxyUrl);
+            this.saveProxiesToFile();
+            console.log(`❌ Removed proxy: ${proxyUrl}`);
+            return true;
+        }
+        return false;
+    }
+
+    getRandomProxy() {
+        if (!CONFIG.PROXY_ROTATION || this.proxies.length === 0) {
+            return null;
+        }
+
+        // Get available proxies (not banned)
+        const availableProxies = this.proxies.filter(proxy => {
+            const status = this.proxyStatus.get(proxy);
+            if (!status) return true;
+            if (status.isBanned && Date.now() < status.banUntil) return false;
+            if (status.isBanned && Date.now() >= status.banUntil) {
+                status.isBanned = false;
+                status.failures = 0;
+                return true;
+            }
+            return true;
+        });
+
+        if (availableProxies.length === 0) {
+            console.warn('⚠️ No available proxies, resetting all bans');
+            this.resetAllBans();
+            return this.proxies[0] || null;
+        }
+
+        // Rotate through available proxies with weighted selection (prefer successful ones)
+        const weightedProxies = [];
+        availableProxies.forEach(proxy => {
+            const status = this.proxyStatus.get(proxy);
+            const weight = Math.max(1, 10 - (status?.failures || 0));
+            for (let i = 0; i < weight; i++) {
+                weightedProxies.push(proxy);
+            }
+        });
+
+        const selectedProxy = weightedProxies[Math.floor(Math.random() * weightedProxies.length)];
+        const status = this.proxyStatus.get(selectedProxy);
+        if (status) {
+            status.lastUsed = Date.now();
+        }
+
+        return selectedProxy;
+    }
+
+    getNextProxy() {
+        if (this.proxies.length === 0) return null;
+        
+        // Try to get next non-banned proxy
+        for (let i = 0; i < this.proxies.length; i++) {
+            this.currentProxyIndex = (this.currentProxyIndex + 1) % this.proxies.length;
+            const proxy = this.proxies[this.currentProxyIndex];
+            const status = this.proxyStatus.get(proxy);
+            
+            if (!status?.isBanned || (status.isBanned && Date.now() >= status.banUntil)) {
+                if (status?.isBanned && Date.now() >= status.banUntil) {
+                    status.isBanned = false;
+                    status.failures = 0;
+                }
+                return proxy;
+            }
+        }
+        
+        // If all proxies are banned, reset all bans
+        this.resetAllBans();
+        return this.proxies[0];
+    }
+
+    reportSuccess(proxyUrl, responseTime) {
+        const status = this.proxyStatus.get(proxyUrl);
+        if (status) {
+            status.failures = 0;
+            status.successCount++;
+            status.responseTime.push(responseTime);
+            // Keep only last 10 response times
+            if (status.responseTime.length > 10) {
+                status.responseTime.shift();
+            }
+        }
+    }
+
+    reportFailure(proxyUrl, error) {
+        const status = this.proxyStatus.get(proxyUrl);
+        if (status) {
+            status.failures++;
+            
+            // Check if proxy should be banned
+            if (status.failures >= CONFIG.PROXY_FAILURE_THRESHOLD) {
+                status.isBanned = true;
+                status.banUntil = Date.now() + CONFIG.PROXY_BAN_TIME;
+                console.warn(`🚫 Proxy banned: ${proxyUrl} for ${CONFIG.PROXY_BAN_TIME / 1000}s (${status.failures} failures)`);
+            }
+            
+            console.error(`❌ Proxy error (${status.failures}/${CONFIG.PROXY_FAILURE_THRESHOLD}): ${proxyUrl} - ${error.message}`);
+        }
+    }
+
+    resetAllBans() {
+        this.proxyStatus.forEach((status, proxy) => {
+            status.isBanned = false;
+            status.failures = 0;
+            status.banUntil = 0;
+        });
+        console.log('🔄 Reset all proxy bans');
+    }
+
+    getProxyAgent(proxyUrl) {
+        if (!proxyUrl) return null;
+        
+        try {
+            const url = new URL(proxyUrl);
+            const isHttps = url.protocol === 'https:';
+            
+            if (url.protocol === 'socks5:' || url.protocol === 'socks5h:') {
+                // For SOCKS5 proxies, you'd need socks-proxy-agent package
+                console.warn('SOCKS5 proxy support requires "socks-proxy-agent" package');
+                return null;
+            }
+            
+            const agent = isHttps 
+                ? new HttpsProxyAgent(proxyUrl)
+                : new HttpProxyAgent(proxyUrl);
+            
+            return agent;
+        } catch (error) {
+            console.error('Error creating proxy agent:', error);
+            return null;
+        }
+    }
+
+    getProxyStats() {
+        const stats = {};
+        this.proxies.forEach(proxy => {
+            const status = this.proxyStatus.get(proxy);
+            if (status) {
+                const avgResponseTime = status.responseTime.length > 0
+                    ? status.responseTime.reduce((a, b) => a + b, 0) / status.responseTime.length
+                    : 0;
+                
+                stats[proxy] = {
+                    failures: status.failures,
+                    isBanned: status.isBanned,
+                    successCount: status.successCount,
+                    avgResponseTime: Math.round(avgResponseTime),
+                    lastUsed: status.lastUsed ? new Date(status.lastUsed).toISOString() : 'never'
+                };
+            }
+        });
+        return stats;
+    }
+}
+
+// Initialize proxy manager
+const proxyManager = new ProxyManager();
 
 // Enhanced logging with security focus
 class Logger {
@@ -66,7 +304,6 @@ class Logger {
         }
         sessionLogs.get(sessionId).push(logEntry);
 
-        // Keep only last 100 entries per session to save memory
         if (sessionLogs.get(sessionId).length > 100) {
             sessionLogs.get(sessionId).shift();
         }
@@ -83,12 +320,15 @@ class Logger {
         const filename = `logs/session_${sessionId}_${Date.now()}.json`;
         try {
             await fs.mkdir('logs', { recursive: true });
-            // Only save last 50 logs to file
             const logsToSave = logs.slice(-50);
             await fs.writeFile(filename, JSON.stringify(logsToSave, null, 2));
         } catch (error) {
             console.error('Failed to save logs:', error);
         }
+    }
+
+    static getLogs(sessionId) {
+        return sessionLogs.get(sessionId) || [];
     }
 }
 
@@ -122,7 +362,6 @@ class RateLimiter {
         return true;
     }
     
-    // Add progressive backoff
     static async waitForRateLimit(sessionId, errorCount) {
         const backoffTime = Math.min(30000, Math.pow(2, errorCount) * 1000);
         await new Promise(resolve => setTimeout(resolve, backoffTime + (Math.random() * 5000)));
@@ -141,8 +380,7 @@ function getRandomDelay() {
 }
 
 function getRandomProxy() {
-    if (!CONFIG.PROXY_ROTATION || PROXIES.length === 0) return null;
-    return PROXIES[Math.floor(Math.random() * PROXIES.length)];
+    return proxyManager.getRandomProxy();
 }
 
 // Generate random browser fingerprint headers
@@ -172,11 +410,55 @@ function getBrowserHeaders(cookie, additionalHeaders = {}) {
 
 // Enhanced endpoints with security headers
 app.use((req, res, next) => {
-    // Add security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     next();
+});
+
+// Proxy management endpoints
+app.get('/api/proxies', (req, res) => {
+    const stats = proxyManager.getProxyStats();
+    res.json({
+        success: true,
+        totalProxies: proxyManager.proxies.length,
+        activeProxies: Object.values(stats).filter(s => !s.isBanned).length,
+        proxies: stats,
+        rotationEnabled: CONFIG.PROXY_ROTATION
+    });
+});
+
+app.post('/api/proxies/add', async (req, res) => {
+    const { proxyUrl } = req.body;
+    
+    if (!proxyUrl) {
+        return res.status(400).json({ success: false, error: 'Proxy URL required' });
+    }
+    
+    const added = proxyManager.addProxy(proxyUrl);
+    res.json({
+        success: added,
+        message: added ? 'Proxy added successfully' : 'Proxy already exists'
+    });
+});
+
+app.delete('/api/proxies/remove', async (req, res) => {
+    const { proxyUrl } = req.body;
+    
+    if (!proxyUrl) {
+        return res.status(400).json({ success: false, error: 'Proxy URL required' });
+    }
+    
+    const removed = proxyManager.removeProxy(proxyUrl);
+    res.json({
+        success: removed,
+        message: removed ? 'Proxy removed successfully' : 'Proxy not found'
+    });
+});
+
+app.post('/api/proxies/reset-bans', (req, res) => {
+    proxyManager.resetAllBans();
+    res.json({ success: true, message: 'All proxy bans reset' });
 });
 
 app.get('/api/total', (req, res) => {
@@ -192,7 +474,8 @@ app.get('/api/total', (req, res) => {
         startTime: session.startTime,
         estimatedCompletion: session.estimatedCompletion,
         error: session.error || null,
-        lastRequestTime: session.lastRequestTime
+        lastRequestTime: session.lastRequestTime,
+        proxyUsed: session.lastProxyUsed || null
     }));
 
     res.json({
@@ -209,10 +492,10 @@ app.post('/api/submit', async (req, res) => {
         url,
         amount,
         interval,
-        sessionId: providedSessionId
+        sessionId: providedSessionId,
+        useProxy = true
     } = req.body;
 
-    // Enhanced validation with realistic limits
     if (!cookie || !url || !amount || !interval) {
         return res.status(400).json({
             success: false,
@@ -220,15 +503,14 @@ app.post('/api/submit', async (req, res) => {
         });
     }
 
-    // More conservative limits
-    if (amount < 1 || amount > 500) { // Reduced from 10000 to 500
+    if (amount < 1 || amount > 500) {
         return res.status(400).json({
             success: false,
             error: 'Amount must be between 1 and 500'
         });
     }
 
-    if (interval < 30 || interval > 300) { // Minimum 30 seconds, max 5 minutes
+    if (interval < 30 || interval > 300) {
         return res.status(400).json({
             success: false,
             error: 'Interval must be between 30 and 300 seconds'
@@ -253,19 +535,19 @@ app.post('/api/submit', async (req, res) => {
 
         const sessionId = providedSessionId || crypto.randomBytes(16).toString('hex');
         
-        // Add random start delay to avoid pattern detection
         if (CONFIG.RANDOM_START_OFFSET) {
             const startDelay = Math.random() * 5000;
             await new Promise(resolve => setTimeout(resolve, startDelay));
         }
 
-        const result = await share(cookies, url, amount, interval, sessionId);
+        const result = await share(cookies, url, amount, interval, sessionId, useProxy);
 
         res.json({
             success: true,
             sessionId: result.sessionId,
             message: 'Sharing started successfully',
-            estimatedCompletion: result.estimatedCompletion
+            estimatedCompletion: result.estimatedCompletion,
+            proxyEnabled: useProxy && CONFIG.PROXY_ROTATION && proxyManager.proxies.length > 0
         });
     } catch (err) {
         console.error('Error in /api/submit:', err);
@@ -276,8 +558,8 @@ app.post('/api/submit', async (req, res) => {
     }
 });
 
-// Enhanced share function with better anti-detection
-async function share(cookies, url, amount, interval, sessionId) {
+// Enhanced share function with proxy support
+async function share(cookies, url, amount, interval, sessionId, useProxy = true) {
     const id = await getPostID(url);
     if (!id) {
         throw new Error("Unable to get post ID");
@@ -308,11 +590,13 @@ async function share(cookies, url, amount, interval, sessionId) {
         lastRequestTime: null,
         consecutiveErrors: 0,
         dailyRequestCount: 0,
-        lastDailyReset: Date.now()
+        lastDailyReset: Date.now(),
+        useProxy: useProxy && CONFIG.PROXY_ROTATION && proxyManager.proxies.length > 0,
+        lastProxyUsed: null
     };
 
     total.set(sessionId, sessionData);
-    await Logger.log(sessionId, 'session_started', { url, amount, interval });
+    await Logger.log(sessionId, 'session_started', { url, amount, interval, useProxy: sessionData.useProxy });
 
     let sharedCount = 0;
     let consecutiveErrors = 0;
@@ -322,7 +606,6 @@ async function share(cookies, url, amount, interval, sessionId) {
     async function sharePost() {
         if (!total.has(sessionId)) return;
 
-        // Daily limit check (max 100 shares per day per session)
         const today = new Date().toDateString();
         if (today !== lastRequestDate) {
             requestCountToday = 0;
@@ -337,28 +620,41 @@ async function share(cookies, url, amount, interval, sessionId) {
             return;
         }
 
-        // Rate limiting check
         if (!RateLimiter.checkLimit(sessionId)) {
             await Logger.log(sessionId, 'rate_limited', { timestamp: new Date().toISOString() });
             return;
         }
 
-        // Add random delay between requests
         const delay = getRandomDelay();
         await new Promise(resolve => setTimeout(resolve, delay));
 
+        let proxyUsed = null;
+        let proxyAgent = null;
+        
+        // Get proxy if enabled
+        if (sessionData.useProxy) {
+            proxyUsed = getRandomProxy();
+            if (proxyUsed) {
+                proxyAgent = proxyManager.getProxyAgent(proxyUsed);
+                await Logger.log(sessionId, 'proxy_selected', { proxy: proxyUsed });
+            }
+        }
+
+        const startRequestTime = Date.now();
+
         try {
             const headers = getBrowserHeaders(cookies);
-            const proxy = getRandomProxy();
             
             const requestConfig = {
                 headers,
                 timeout: CONFIG.REQUEST_TIMEOUT
             };
             
-            if (proxy) requestConfig.proxy = proxy;
+            if (proxyAgent) {
+                requestConfig.httpsAgent = proxyAgent;
+                requestConfig.httpAgent = proxyAgent;
+            }
 
-            // Use different endpoints randomly to avoid pattern detection
             const endpoints = [
                 `https://graph.facebook.com/me/feed`,
                 `https://graph.facebook.com/v18.0/me/feed`,
@@ -372,24 +668,32 @@ async function share(cookies, url, amount, interval, sessionId) {
                 requestConfig
             );
 
+            const responseTime = Date.now() - startRequestTime;
+            
+            if (proxyUsed) {
+                proxyManager.reportSuccess(proxyUsed, responseTime);
+            }
+
             if (response.status === 200) {
                 sharedCount++;
                 requestCountToday++;
                 consecutiveErrors = 0;
                 
-                // Update last request time in session
                 const session = total.get(sessionId);
                 if (session) {
                     session.count = sharedCount;
                     session.status = sharedCount >= amount ? 'completed' : 'running';
                     session.lastRequestTime = new Date().toISOString();
+                    session.lastProxyUsed = proxyUsed;
                     total.set(sessionId, session);
                 }
 
                 await Logger.log(sessionId, 'share_success', {
                     count: sharedCount,
                     total: amount,
-                    dailyCount: requestCountToday
+                    dailyCount: requestCountToday,
+                    proxyUsed: proxyUsed,
+                    responseTime: responseTime
                 });
 
                 if (sharedCount >= amount) {
@@ -402,18 +706,23 @@ async function share(cookies, url, amount, interval, sessionId) {
             }
         } catch (error) {
             consecutiveErrors++;
+            
+            if (proxyUsed) {
+                proxyManager.reportFailure(proxyUsed, error);
+            }
+            
             await Logger.log(sessionId, 'share_error', {
                 error: error.message,
                 consecutiveErrors,
-                status: error.response?.status
+                status: error.response?.status,
+                proxyUsed: proxyUsed
             });
 
-            // Progressive backoff on errors
             if (error.response?.status === 429) {
                 await RateLimiter.waitForRateLimit(sessionId, consecutiveErrors);
             }
 
-            if (consecutiveErrors >= 3) { // Reduced from 5 to be more conservative
+            if (consecutiveErrors >= 3) {
                 await Logger.log(sessionId, 'session_stopped_due_to_errors', {
                     reason: 'Too many consecutive errors',
                     errorCount: consecutiveErrors
@@ -429,11 +738,9 @@ async function share(cookies, url, amount, interval, sessionId) {
         }
     }
 
-    // Start sharing with interval
     const timer = setInterval(sharePost, interval * 1000);
     activeTimers.set(sessionId, timer);
 
-    // Set timeout to stop after completion
     const timeoutId = setTimeout(() => {
         if (total.has(sessionId) && total.get(sessionId).count < amount) {
             stopSharing(sessionId);
@@ -472,10 +779,8 @@ async function stopSharing(sessionId) {
     });
 }
 
-// Enhanced helper functions with better error handling
 async function getPostID(url, retryCount = 0) {
     try {
-        // Add delay before API call
         await new Promise(resolve => setTimeout(resolve, Math.random() * 2000));
         
         const response = await axios.post('https://id.traodoisub.com/api.php', 
@@ -522,7 +827,6 @@ async function getAccessToken(cookie, retryCount = 0) {
             'User-Agent': userAgent
         };
 
-        // Random delay before request
         await new Promise(resolve => setTimeout(resolve, Math.random() * 3000));
 
         const response = await axios.get('https://business.facebook.com/content_management', {
@@ -587,6 +891,12 @@ app.get('/api/health', (req, res) => {
         activeSessions: total.size,
         maxConcurrent: CONFIG.MAX_CONCURRENT_SESSIONS,
         uptime: process.uptime(),
+        proxyEnabled: CONFIG.PROXY_ROTATION,
+        activeProxies: proxyManager.proxies.filter(p => {
+            const status = proxyManager.proxyStatus.get(p);
+            return !status?.isBanned;
+        }).length,
+        totalProxies: proxyManager.proxies.length,
         timestamp: new Date().toISOString()
     });
 });
@@ -600,11 +910,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Create logs directory
+// Create logs directory and load proxies
 (async () => {
     try {
         await fs.mkdir('logs', { recursive: true });
-        console.log('Logs directory created');
+        console.log('📁 Logs directory created');
+        await proxyManager.loadProxiesFromFile();
     } catch (error) {
         console.error('Failed to create logs directory:', error);
     }
@@ -612,15 +923,27 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`Total endpoint: http://localhost:${PORT}/api/total`);
-    console.log('\n⚠️  IMPORTANT SAFETY NOTICE:');
-    console.log('1. Keep intervals above 30 seconds');
-    console.log('2. Maximum 100 shares per day per account');
-    console.log('3. Don\'t run more than 3 concurrent sessions');
-    console.log('4. Use fresh cookies from legitimate accounts');
-    console.log('5. Monitor logs for any suspicious activity\n');
+    console.log(`\n🚀 FB Share Engine running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`📈 Total endpoint: http://localhost:${PORT}/api/total`);
+    console.log(`🔌 Proxy endpoints:`);
+    console.log(`   GET  /api/proxies - List all proxies`);
+    console.log(`   POST /api/proxies/add - Add proxy`);
+    console.log(`   DELETE /api/proxies/remove - Remove proxy`);
+    console.log(`   POST /api/proxies/reset-bans - Reset all proxy bans`);
+    console.log(`\n⚠️  IMPORTANT SAFETY NOTICE:`);
+    console.log(`1. Keep intervals above 30 seconds`);
+    console.log(`2. Maximum 100 shares per day per account`);
+    console.log(`3. Don't run more than 3 concurrent sessions`);
+    console.log(`4. Use fresh cookies from legitimate accounts`);
+    console.log(`5. Monitor logs for any suspicious activity`);
+    if (proxyManager.proxies.length === 0) {
+        console.log(`\n⚠️  No proxies configured. Add proxies using the API or create proxies.json`);
+        console.log(`   Example: {"proxyUrl": "http://user:pass@host:port"}`);
+    } else {
+        console.log(`\n✅ ${proxyManager.proxies.length} proxies loaded and ready`);
+    }
+    console.log('');
 });
 
 module.exports = app;

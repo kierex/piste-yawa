@@ -20,7 +20,7 @@ const sessionLogs = new Map();
 // Configuration
 const CONFIG = {
     MAX_CONCURRENT_SESSIONS: 5,
-    RATE_LIMIT_WINDOW: 60000,
+    RATE_LIMIT_WINDOW: 60000, // 1 minute
     MAX_REQUESTS_PER_WINDOW: 30,
     REQUEST_TIMEOUT: 30000,
     RETRY_ATTEMPTS: 3,
@@ -99,95 +99,119 @@ class RateLimiter {
 
 // Enhanced endpoints
 app.get('/api/total', (req, res) => {
-    const data = Array.from(total.values()).map((session, index) => ({
-        sessionId: session.sessionId,
-        sessionNumber: index + 1,
-        url: session.url,
-        sharedCount: session.count,
-        targetAmount: session.target,
-        postId: session.postId,
-        status: session.status,
-        progress: ((session.count / session.target) * 100).toFixed(2),
-        startTime: session.startTime,
-        estimatedCompletion: session.estimatedCompletion,
-        error: session.error || null
-    }));
+    try {
+        const data = Array.from(total.values()).map((session, index) => ({
+            sessionId: session.sessionId,
+            sessionNumber: index + 1,
+            url: session.url,
+            sharedCount: session.count,
+            targetAmount: session.target,
+            postId: session.postId,
+            status: session.status,
+            progress: ((session.count / session.target) * 100).toFixed(2),
+            startTime: session.startTime,
+            estimatedCompletion: session.estimatedCompletion,
+            error: session.error || null
+        }));
 
-    res.json({
-        success: true,
-        activeSessions: total.size,
-        sessions: data,
-        timestamp: new Date().toISOString()
-    });
+        res.json({
+            success: true,
+            activeSessions: total.size,
+            sessions: data,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error in /api/total:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch session data'
+        });
+    }
 });
 
 app.get('/api/session/:sessionId/logs', (req, res) => {
-    const { sessionId } = req.params;
-    const logs = Logger.getLogs(sessionId);
-    res.json({
-        success: true,
-        sessionId,
-        logs
-    });
+    try {
+        const { sessionId } = req.params;
+        const logs = Logger.getLogs(sessionId);
+        res.json({
+            success: true,
+            sessionId,
+            logs
+        });
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch session logs'
+        });
+    }
 });
 
 app.delete('/api/session/:sessionId', async (req, res) => {
-    const { sessionId } = req.params;
+    try {
+        const { sessionId } = req.params;
 
-    if (!total.has(sessionId)) {
-        return res.status(404).json({
+        if (!total.has(sessionId)) {
+            return res.status(404).json({
+                success: false,
+                error: 'Session not found'
+            });
+        }
+
+        await stopSharing(sessionId);
+        total.delete(sessionId);
+
+        res.json({
+            success: true,
+            message: 'Session stopped successfully'
+        });
+    } catch (error) {
+        console.error('Error stopping session:', error);
+        res.status(500).json({
             success: false,
-            error: 'Session not found'
+            error: 'Failed to stop session'
         });
     }
-
-    await stopSharing(sessionId);
-    total.delete(sessionId);
-
-    res.json({
-        success: true,
-        message: 'Session stopped successfully'
-    });
 });
 
 app.post('/api/submit', async (req, res) => {
-    const {
-        cookie,
-        url,
-        amount,
-        interval,
-        sessionId: providedSessionId
-    } = req.body;
-
-    if (!cookie || !url || !amount || !interval) {
-        return res.status(400).json({
-            success: false,
-            error: 'Missing required fields: cookie, url, amount, or interval'
-        });
-    }
-
-    if (amount < 1 || amount > 10000) {
-        return res.status(400).json({
-            success: false,
-            error: 'Amount must be between 1 and 10000'
-        });
-    }
-
-    if (interval < 1 || interval > 60) {
-        return res.status(400).json({
-            success: false,
-            error: 'Interval must be between 1 and 60 seconds'
-        });
-    }
-
-    if (total.size >= CONFIG.MAX_CONCURRENT_SESSIONS) {
-        return res.status(429).json({
-            success: false,
-            error: `Maximum concurrent sessions (${CONFIG.MAX_CONCURRENT_SESSIONS}) reached`
-        });
-    }
-
     try {
+        const {
+            cookie,
+            url,
+            amount,
+            interval,
+            sessionId: providedSessionId
+        } = req.body;
+
+        if (!cookie || !url || !amount || !interval) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields: cookie, url, amount, or interval'
+            });
+        }
+
+        if (amount < 1 || amount > 10000) {
+            return res.status(400).json({
+                success: false,
+                error: 'Amount must be between 1 and 10000'
+            });
+        }
+
+        if (interval < 1 || interval > 60) {
+            return res.status(400).json({
+                success: false,
+                error: 'Interval must be between 1 and 60 seconds'
+            });
+        }
+
+        if (total.size >= CONFIG.MAX_CONCURRENT_SESSIONS) {
+            return res.status(429).json({
+                success: false,
+                error: `Maximum concurrent sessions (${CONFIG.MAX_CONCURRENT_SESSIONS}) reached`
+            });
+        }
+
         const cookies = await convertCookie(cookie);
         if (!cookies) {
             return res.status(400).json({
@@ -197,7 +221,6 @@ app.post('/api/submit', async (req, res) => {
         }
 
         const sessionId = providedSessionId || crypto.randomBytes(16).toString('hex');
-
         const result = await share(cookies, url, amount, interval, sessionId);
 
         res.json({
@@ -397,7 +420,7 @@ async function getAccessToken(cookie, retryCount = 0) {
     try {
         const headers = {
             'authority': 'business.facebook.com',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'accept-language': 'en-US,en;q=0.9',
             'cache-control': 'max-age=0',
             'cookie': cookie,
@@ -468,17 +491,19 @@ async function convertCookie(cookie) {
     }
 }
 
+// Cleanup old sessions periodically
 setInterval(() => {
     const now = Date.now();
     for (const [sessionId, session] of total.entries()) {
         const sessionTime = new Date(session.startTime).getTime();
-        if (session.status === 'completed' && (now - sessionTime) > 86400000) {
+        if (session.status === 'completed' && (now - sessionTime) > 86400000) { // 24 hours
             total.delete(sessionId);
             sessionLogs.delete(sessionId);
         }
     }
-}, 3600000);
+}, 3600000); // Run every hour
 
+// Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
@@ -489,15 +514,79 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// ========== 404 and 500 ERROR HANDLING MIDDLEWARE ==========
+
+// Handle 500 errors - Catch-all for unhandled errors in routes
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: err.message
+    console.error('Error stack:', err.stack);
+    
+    // Check if headers already sent
+    if (res.headersSent) {
+        return next(err);
+    }
+    
+    // For API routes, return JSON error
+    if (req.path.startsWith('/api/')) {
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: err.message || 'Something went wrong on the server'
+        });
+    }
+    
+    // For HTML routes, serve the 500.html page
+    res.status(500);
+    res.sendFile(path.join(__dirname, 'public', '500.html'), (sendErr) => {
+        if (sendErr) {
+            // Fallback if 500.html doesn't exist
+            res.status(500).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>500 - Server Error</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>500 - Internal Server Error</h1>
+                    <p>Something went wrong on our end. Please try again later.</p>
+                    <a href="/">Return to Home</a>
+                </body>
+                </html>
+            `);
+        }
     });
 });
 
+// Handle 404 - Catch-all for undefined routes (must be after all other routes)
+app.use((req, res) => {
+    // For API routes that don't exist, return JSON 404
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+            success: false,
+            error: 'API endpoint not found',
+            path: req.path
+        });
+    }
+    
+    // For HTML routes, serve the 404.html page
+    res.status(404);
+    res.sendFile(path.join(__dirname, 'public', '404.html'), (sendErr) => {
+        if (sendErr) {
+            // Fallback if 404.html doesn't exist
+            res.status(404).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>404 - Page Not Found</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>404 - Page Not Found</h1>
+                    <p>The page you are looking for does not exist.</p>
+                    <a href="/">Return to Home</a>
+                </body>
+                </html>
+            `);
+        }
+    });
+});
+
+// Create logs directory if it doesn't exist
 (async () => {
     try {
         await fs.mkdir('logs', { recursive: true });
@@ -509,9 +598,15 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`Total endpoint: http://localhost:${PORT}/api/total`);
+    console.log(`╔══════════════════════════════════════════════════╗`);
+    console.log(`║     SHAREBOOST PRO SERVER STARTED SUCCESSFULLY   ║`);
+    console.log(`╠══════════════════════════════════════════════════╣`);
+    console.log(`║  🚀 Server running on port: ${PORT}                     ║`);
+    console.log(`║  📊 Health check: http://localhost:${PORT}/api/health  ║`);
+    console.log(`║  📈 Total endpoint: http://localhost:${PORT}/api/total  ║`);
+    console.log(`║  🌐 Dashboard: http://localhost:${PORT}/dashboard.html  ║`);
+    console.log(`║  📖 Tutorial: http://localhost:${PORT}/tutorial.html    ║`);
+    console.log(`╚══════════════════════════════════════════════════╝`);
 });
 
 module.exports = app;

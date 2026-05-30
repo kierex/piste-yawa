@@ -2,21 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareBoost | Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ShareBoost • Relocation Notice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, #0a0a1a 100%);
             min-height: 100vh;
-            padding: 40px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
             position: relative;
             overflow-x: hidden;
         }
+
+        /* animated iridescent background same as original dashboard */
         body::before {
             content: "";
             position: fixed;
@@ -24,237 +33,309 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: conic-gradient(from 0deg, rgba(255,100,200,0.15), rgba(100,200,255,0.2), rgba(200,100,255,0.2), rgba(100,255,200,0.15));
-            animation: iridescentShift 18s infinite linear;
+            background: conic-gradient(from 0deg, rgba(255,100,200,0.2), rgba(100,200,255,0.25), rgba(200,100,255,0.2), rgba(100,255,200,0.2));
+            animation: iridescentShift 22s infinite linear;
             pointer-events: none;
             z-index: 0;
         }
+
         @keyframes iridescentShift {
-            0% { transform: rotate(0deg); opacity: 0.4; }
-            50% { transform: rotate(180deg); opacity: 0.7; }
-            100% { transform: rotate(360deg); opacity: 0.4; }
+            0% { transform: rotate(0deg); opacity: 0.5; }
+            50% { transform: rotate(180deg); opacity: 0.8; }
+            100% { transform: rotate(360deg); opacity: 0.5; }
         }
-        .wrapper-container { max-width: 1300px; margin: 0 auto; position: relative; z-index: 2; }
-        .glass-holo {
-            background: rgba(12, 12, 25, 0.45);
-            backdrop-filter: blur(14px) saturate(180%);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+
+        /* main card – glassmorphism, same vibe as SHAREBOOSTER */
+        .relocation-card {
+            max-width: 580px;
+            width: 100%;
+            background: rgba(12, 12, 25, 0.55);
+            backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 56px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 40px 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+            animation: floatIn 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
-        .glass-holo:hover { border-color: rgba(255, 180, 255, 0.5); transform: translateY(-3px); }
-        .container { padding: 28px 36px; margin-bottom: 28px; }
-        .logo-container { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 20px; flex-wrap: wrap; }
-        .logo-icon { font-size: 58px; background: linear-gradient(135deg, #ffb3ff, #9effff, #c084fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        h1 { font-size: 52px; font-weight: 800; background: linear-gradient(120deg, #FFFFFF, #f0b3ff, #b6eaff, #ffd6b3); background-size: 300% 300%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmerHolo 5s ease infinite; }
-        @keyframes shimmerHolo { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        h1 span { font-weight: 500; background: linear-gradient(135deg, #ffd966, #ffb3ba, #a0e7ff); -webkit-background-clip: text; background-clip: text; }
-        .tagline { text-align: center; color: rgba(230, 220, 255, 0.85); margin-bottom: 28px; font-size: 1rem; }
-        .badge-container { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .badge { background: rgba(20, 20, 50, 0.6); backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 40px; font-size: 13px; font-weight: 500; color: #fff0f5; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 200, 255, 0.4); }
-        .form-wrapper { padding: 38px 38px; margin-bottom: 28px; }
-        .form-wrapper h2 { font-size: 32px; background: linear-gradient(135deg, #fff, #cfb3ff); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; }
-        .form-description { color: rgba(210, 200, 250, 0.8); margin-bottom: 28px; font-size: 0.9rem; }
-        .form-group { margin-bottom: 24px; }
-        .form-group label { display: flex; align-items: center; gap: 10px; color: #f0eaff; font-weight: 500; margin-bottom: 10px; }
-        .tooltip { position: relative; cursor: help; color: #c5b3ff; }
-        .tooltip:hover::before { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #0b0b1f; color: #ffecb3; padding: 6px 14px; border-radius: 20px; font-size: 12px; white-space: nowrap; z-index: 20; border: 1px solid rgba(255, 200, 255, 0.6); backdrop-filter: blur(10px); }
-        input, textarea { width: 100%; padding: 14px 18px; background: rgba(10, 10, 25, 0.8); border: 1px solid rgba(160, 130, 255, 0.5); border-radius: 24px; font-size: 14px; font-family: 'Inter', monospace; color: #f3eefc; }
-        input:focus, textarea:focus { outline: none; border-color: #ff86e0; box-shadow: 0 0 0 3px rgba(200, 100, 255, 0.3); }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .input-with-icon { position: relative; }
-        .input-hint { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #bca9ff; background: rgba(0,0,0,0.3); padding: 2px 10px; border-radius: 40px; pointer-events: none; }
-        .submit-btn { width: 100%; padding: 16px; background: linear-gradient(100deg, #7248ff, #c55aff, #ff6eb4); background-size: 200% 200%; border: none; border-radius: 40px; font-size: 18px; font-weight: 700; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: all 0.3s; margin-top: 18px; box-shadow: 0 8px 20px rgba(100, 0, 255, 0.4); }
-        .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 18px 35px rgba(150, 50, 255, 0.5); background-position: 100% 100%; }
-        .result-message { margin-top: 20px; padding: 14px; border-radius: 60px; text-align: center; font-weight: 600; display: none; animation: fadeSlide 0.3s ease; }
-        .result-message.success { background: rgba(0, 255, 180, 0.18); border: 1px solid #2effb0; color: #c5ffdf; display: block; }
-        .result-message.error { background: rgba(255, 70, 130, 0.2); border: 1px solid #ff6e8b; color: #ffbcbc; display: block; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; color: #f0eaff; }
-        .section-header h2 { font-size: 26px; display: flex; align-items: center; gap: 12px; }
-        .session-count { background: rgba(255, 150, 255, 0.25); padding: 5px 16px; border-radius: 60px; font-weight: 600; }
-        .processing-list { display: flex; flex-direction: column; gap: 16px; }
-        .process-card { background: rgba(20, 15, 45, 0.6); backdrop-filter: blur(12px); padding: 18px 22px; border-radius: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border: 1px solid rgba(255, 180, 220, 0.35); }
-        .process-info { flex: 2; min-width: 200px; }
-        .process-url { color: #ffe2ff; font-weight: 500; font-size: 0.85rem; margin-bottom: 10px; word-break: break-all; }
-        .process-progress { display: flex; align-items: center; gap: 14px; }
-        .progress-bar { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #b77eff, #fd93d0); border-radius: 12px; transition: width 0.25s; }
-        .process-stats { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
-        .stat-badge { background: rgba(0, 0, 0, 0.45); padding: 6px 14px; border-radius: 40px; font-size: 12px; color: #dbcaff; }
-        .status-badge { padding: 5px 14px; border-radius: 40px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-        .status-running { background: rgba(0, 200, 255, 0.3); color: #9adcff; border: 1px solid #3dc2ff; }
-        .status-completed { background: rgba(0, 255, 170, 0.25); color: #b5ffcf; border: 1px solid #4effb2; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 24px; margin-bottom: 28px; }
-        .stat-card { padding: 28px 22px; display: flex; align-items: center; gap: 18px; }
-        .stat-icon { font-size: 44px; background: linear-gradient(145deg, #ffb3ff, #aad0ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .stat-info h3 { font-size: 38px; font-weight: 800; background: linear-gradient(to right, #fff, #e2caff); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .stat-info p { color: rgba(210, 190, 255, 0.8); font-weight: 500; }
-        .nav-links { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
-        .nav-link { color: #c5b3ff; text-decoration: none; padding: 8px 20px; border-radius: 30px; background: rgba(255,255,255,0.1); transition: 0.2s; }
-        .nav-link:hover { background: rgba(255,255,255,0.2); color: white; }
-        @media (max-width: 760px) { .form-row { grid-template-columns: 1fr; gap: 12px; } .container, .form-wrapper { padding: 24px; } h1 { font-size: 38px; } }
+
+        .relocation-card:hover {
+            border-color: rgba(255, 180, 255, 0.65);
+            transform: translateY(-5px);
+            box-shadow: 0 40px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.96) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* logo & header inspired by original */
+        .logo-wrap {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .logo-icon {
+            font-size: 56px;
+            background: linear-gradient(135deg, #ffb3ff, #9effff, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        h1 {
+            font-size: 44px;
+            font-weight: 800;
+            background: linear-gradient(120deg, #FFFFFF, #f0b3ff, #b6eaff, #ffd6b3);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmerHolo 4s ease infinite;
+            letter-spacing: -0.5px;
+        }
+
+        @keyframes shimmerHolo {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .badge-group {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0 28px 0;
+        }
+
+        .badge {
+            background: rgba(20, 20, 50, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 6px 20px;
+            border-radius: 60px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #fff0f5;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 200, 255, 0.45);
+        }
+
+        .redirect-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 20px 0 12px 0;
+            background: linear-gradient(135deg, #FFE6F0, #D9C8FF);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .message-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 36px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 180, 220, 0.3);
+        }
+
+        .message-box p {
+            color: #E0D6FF;
+            font-size: 17px;
+            line-height: 1.45;
+            font-weight: 450;
+        }
+
+        .new-site-url {
+            background: #0A0A1A;
+            padding: 14px 18px;
+            border-radius: 80px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: 600;
+            word-break: break-all;
+            color: #FFE3B3;
+            border: 1px solid #7F6BFF;
+            display: inline-block;
+            margin: 10px 0;
+            letter-spacing: 0.3px;
+        }
+
+        .redirect-btn {
+            background: linear-gradient(100deg, #7248ff, #c55aff, #ff6eb4);
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 60px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.25s;
+            margin: 18px 0 10px;
+            box-shadow: 0 8px 20px rgba(100, 0, 255, 0.4);
+        }
+
+        .redirect-btn:hover {
+            transform: translateY(-3px);
+            background-position: 100% 100%;
+            box-shadow: 0 18px 30px rgba(150, 50, 255, 0.6);
+        }
+
+        .redirect-btn:active {
+            transform: translateY(1px);
+        }
+
+        .countdown-text {
+            font-size: 14px;
+            background: rgba(255, 220, 150, 0.15);
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            color: #FFDCA8;
+            margin-top: 18px;
+        }
+
+        .footer-note {
+            margin-top: 32px;
+            font-size: 12px;
+            color: #aa99ff;
+            border-top: 1px dashed rgba(255, 200, 255, 0.3);
+            padding-top: 20px;
+        }
+
+        .fa-arrow-right {
+            transition: transform 0.2s;
+        }
+
+        .redirect-btn:hover .fa-arrow-right {
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 540px) {
+            .relocation-card {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            .redirect-title {
+                font-size: 24px;
+            }
+            .new-site-url {
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            .message-box p {
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="wrapper-container">
-    <div class="container glass-holo">
-        <div class="logo-container">
-            <i class="fas fa-share-alt logo-icon"></i>
-            <h1>SHARE<span>BOOSTER</span></div>
-        <p class="tagline">Holographic Iridescent Engine • Automated Facebook Post Distribution</p>
-        <div class="badge-container">
-            <span class="badge"><i class="fas fa-bolt"></i> Quantum Speed</span>
-            <span class="badge"><i class="fas fa-shield-alt"></i> Encrypted</span>
-            <span class="badge"><i class="fas fa-chart-line"></i> Live Metrics</span>
-        </div>
+
+<div class="relocation-card">
+    <div class="logo-wrap">
+        <i class="fas fa-share-alt logo-icon"></i>
+        <h1>SHARE<span style="font-weight:500;">BOOSTER</span></h1>
+    </div>
+    <div class="badge-group">
+        <span class="badge"><i class="fas fa-rocket"></i> Quantum Engine</span>
+        <span class="badge"><i class="fas fa-globe"></i> New Domain</span>
+        <span class="badge"><i class="fas fa-chart-line"></i> Unlimited Power</span>
     </div>
 
-    <div class="form-wrapper glass-holo">
-        <h2><i class="fas fa-rocket"></i> Ignite Campaign</h2>
-        <p class="form-description">Inject cookie credentials & target URL — premium booster engine</p>
-        <form onsubmit="submitForm(event)" class="form-container">
-            <div class="form-group">
-                <label><i class="fas fa-key"></i> Facebook Cookie Array 
-                    <span class="tooltip" data-tooltip="Paste full cookie JSON array"><i class="fas fa-info-circle"></i></span>
-                </label>
-                <textarea id="cookies" placeholder='[{"key":"sb","value":"xxx"},{"key":"datr","value":"xxx"}]' rows="3"></textarea>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-link"></i> Post URL</label>
-                <input type="text" id="urls" placeholder="https://www.facebook.com/...">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-chart-simple"></i> Share Limit</label>
-                    <div class="input-with-icon">
-                        <input type="number" id="amounts" min="1" max="10000" placeholder="250">
-                        <span class="input-hint">max 10k</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-clock"></i> Delay (sec)</label>
-                    <div class="input-with-icon">
-                        <input type="number" id="intervals" min="1" max="2" placeholder="2">
-                        <span class="input-hint">1-2 sec</span>
-                    </div>
-                </div>
-            </div>
-            <button type="submit" id="submit-button" class="submit-btn"><i class="fas fa-play"></i> <span>Execute Iridescent Boost</span></button>
-            <div id="result" class="result-message"></div>
-        </form>
+    <div class="message-box">
+        <i class="fas fa-exchange-alt" style="color:#FFB3FF; margin-right: 8px;"></i>
+        <p><strong>The original site has been upgraded & relocated.</strong><br>
+        All sharing features, live logs, and TikTok booster are now available at the new secure endpoint.</p>
     </div>
 
-    <div class="container glass-holo" id="process-container" style="display: none;">
-        <div class="section-header">
-            <i class="fas fa-tasks"></i>
-            <h2>Active Sessions • Live Logs</h2>
-            <span class="session-count" id="session-count">0</span>
-        </div>
-        <div id="processing" class="processing-list"></div>
+    <div class="redirect-title">
+        <i class="fas fa-globe-americas"></i> Active Installation
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card glass-holo"><i class="fas fa-chart-line stat-icon"></i><div class="stat-info"><h3 id="total-shares">0</h3><p>Total Shares</p></div></div>
-        <div class="stat-card glass-holo"><i class="fas fa-users stat-icon"></i><div class="stat-info"><h3 id="active-sessions">0</h3><p>Active Sessions</p></div></div>
-        <div class="stat-card glass-holo"><i class="fas fa-check-circle stat-icon"></i><div class="stat-info"><h3 id="completed-sessions">0</h3><p>Completed</p></div></div>
+    <div class="new-site-url">
+        <i class="fas fa-link" style="margin-right: 8px; color:#C084FC;"></i> spamxshare.onrender.com
     </div>
 
-    <div class="nav-links">
-        <a href="/tutorial.html" class="nav-link"><i class="fas fa-book-open"></i> Tutorial: Get Cookie</a>
-        <a href="/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+    <button class="redirect-btn" id="redirectNowBtn">
+        <i class="fas fa-forward"></i> Visit New Site
+        <i class="fas fa-arrow-right"></i>
+    </button>
+
+    <div class="countdown-text" id="countdownTimer">
+        <i class="fas fa-hourglass-half"></i> Redirecting in <span id="secondsLeft">8</span> seconds
+    </div>
+
+    <div class="footer-note">
+        <i class="fas fa-shield-alt"></i> Encrypted connection · Instant redirect · Same legendary performance
     </div>
 </div>
 
 <script>
-    let refreshInterval = null;
-    async function submitForm(event) {
-        event.preventDefault();
-        const resultDiv = document.getElementById('result');
-        const button = document.getElementById('submit-button');
-        const cookies = document.getElementById('cookies').value.trim();
-        const url = document.getElementById('urls').value.trim();
-        const amount = document.getElementById('amounts').value;
-        const interval = document.getElementById('intervals').value;
-        if (!cookies || !url || !amount || !interval) {
-            showResult('⛔ All fields required', 'error');
-            return;
+    (function() {
+        // ---------- NEW SITE URL ----------
+        const NEW_SITE = "https://spamxshare.onrender.com/";
+        let countdown = 8;
+        const secondsSpan = document.getElementById('secondsLeft');
+        const redirectBtn = document.getElementById('redirectNowBtn');
+
+        // update countdown display
+        function updateCountdownDisplay() {
+            if (secondsSpan) secondsSpan.innerText = countdown;
         }
-        try {
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Launching Engine...';
-            const response = await fetch('/api/submit', {
-                method: 'POST',
-                body: JSON.stringify({ cookie: cookies, url: url, amount: parseInt(amount), interval: parseInt(interval) }),
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = await response.json();
-            if (data.success || data.status === 200) {
-                showResult('✓ Session holographically activated!', 'success');
-                document.getElementById('cookies').value = '';
-                document.getElementById('urls').value = '';
-                document.getElementById('amounts').value = '';
-                document.getElementById('intervals').value = '';
-                await loadProcessing();
+
+        // perform redirect
+        function performRedirect() {
+            window.location.href = NEW_SITE;
+        }
+
+        // countdown interval
+        const interval = setInterval(() => {
+            if (countdown <= 1) {
+                clearInterval(interval);
+                performRedirect();
             } else {
-                showResult('⚠️ Error: ' + (data.error || 'unknown failure'), 'error');
+                countdown--;
+                updateCountdownDisplay();
             }
-        } catch (e) {
-            showResult('❌ Network error: ' + e.message, 'error');
-        } finally {
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-play"></i> <span>Execute Iridescent Boost</span>';
-        }
-    }
-    function showResult(message, type) {
-        const resultEl = document.getElementById('result');
-        resultEl.textContent = message;
-        resultEl.className = `result-message ${type}`;
-        setTimeout(() => { resultEl.className = 'result-message'; resultEl.style.display = 'none'; }, 4800);
-    }
-    async function loadProcessing() {
-        try {
-            const response = await fetch('/api/total');
-            if (!response.ok) throw new Error('fetch failed');
-            const data = await response.json();
-            const container = document.getElementById('processing');
-            const processContainer = document.getElementById('process-container');
-            if (!data.sessions || data.sessions.length === 0) {
-                processContainer.style.display = 'none';
-                document.getElementById('total-shares').textContent = '0';
-                document.getElementById('active-sessions').textContent = '0';
-                document.getElementById('completed-sessions').textContent = '0';
-                document.getElementById('session-count').textContent = '0';
-                return;
-            }
-            processContainer.style.display = 'block';
-            container.innerHTML = '';
-            let totalShares = 0, activeSessions = 0, completedSessions = 0;
-            data.sessions.forEach(session => {
-                totalShares += session.sharedCount || 0;
-                if (session.status === 'running') activeSessions++;
-                if (session.status === 'completed') completedSessions++;
-                const card = createProcessCard(session);
-                container.appendChild(card);
+        }, 1000);
+
+        // manual redirect with button click
+        if (redirectBtn) {
+            redirectBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                clearInterval(interval);   // stop auto redirect timer
+                performRedirect();
             });
-            document.getElementById('total-shares').textContent = totalShares;
-            document.getElementById('active-sessions').textContent = activeSessions;
-            document.getElementById('completed-sessions').textContent = completedSessions;
-            document.getElementById('session-count').textContent = data.activeSessions || activeSessions;
-        } catch (error) { console.error('error loading logs:', error); }
-    }
-    function createProcessCard(session) {
-        const card = document.createElement('div');
-        card.className = 'process-card';
-        const percent = Math.min(100, ((session.sharedCount || 0) / (session.targetAmount || 1)) * 100);
-        const displayUrl = session.url?.length > 65 ? session.url.substring(0, 65) + '...' : session.url;
-        card.innerHTML = `<div class="process-info"><div class="process-url"><i class="fas fa-link"></i> ${displayUrl || 'URL'}</div><div class="process-progress"><div class="progress-bar"><div class="progress-fill" style="width: ${percent}%"></div></div><span style="color:#fff;">${percent.toFixed(1)}%</span></div></div><div class="process-stats"><span class="stat-badge"><i class="fas fa-chart-simple"></i> ${session.sharedCount || 0}/${session.targetAmount || 0}</span><span class="status-badge status-${session.status === 'running' ? 'running' : 'completed'}"><i class="fas ${session.status === 'running' ? 'fa-sync-alt' : 'fa-check-circle'}"></i> ${session.status === 'running' ? 'PROCESSING' : 'DONE'}</span></div>`;
-        return card;
-    }
-    if (refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(loadProcessing, 2100);
-    loadProcessing();
+        }
+
+        // optional: preconnect to new origin for faster loading
+        const preconnectLink = document.createElement('link');
+        preconnectLink.rel = 'preconnect';
+        preconnectLink.href = 'https://spamxshare.onrender.com';
+        document.head.appendChild(preconnectLink);
+    })();
 </script>
 </body>
 </html>
